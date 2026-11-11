@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "greencode-profiler"
+version = "1.0.0"
+authors = [
+  { name="GreenCode Team", email="developer@greencode.org" },
+]
+description = "Universal Process-Level Energy Profiler & Green-Maintainability Framework (Supports PHP, Node.js, Python, Go)"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Testing",
+    "Topic :: System :: Benchmark",
+]
+dependencies = [
+    "psutil>=5.9.0",
+]
+
+[project.scripts]
+greencode = "greencode.cli:main"
+

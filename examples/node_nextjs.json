@@ -1,0 +1,32 @@
+{
+  "project_name": "Next.js & Express App",
+  "runtime": "node",
+  "base_url": "http://127.0.0.1:3000",
+  "cpu_tdp_watts": 15.0,
+  "repeats": 5,
+  "auth": {
+    "type": "none"
+  },
+  "endpoints": [
+    {
+      "path": "/api/health",
+      "name": "Health Status",
+      "method": "GET"
+    },
+    {
+      "path": "/api/products",
+      "name": "Product Catalog",
+      "method": "GET"
+    },
+    {
+      "path": "/api/checkout",
+      "name": "Checkout Process",
+      "method": "POST",
+      "body": {
+        "cart_id": "test-123"
+      }
+    }
+  ],
+  "static_summary": ""
+}
+

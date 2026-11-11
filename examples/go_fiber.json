@@ -1,0 +1,24 @@
+{
+  "project_name": "Go Fiber High-Throughput API",
+  "runtime": "go",
+  "base_url": "http://127.0.0.1:8080",
+  "cpu_tdp_watts": 15.0,
+  "repeats": 5,
+  "auth": {
+    "type": "none"
+  },
+  "endpoints": [
+    {
+      "path": "/healthz",
+      "name": "Liveness Probe",
+      "method": "GET"
+    },
+    {
+      "path": "/api/metrics",
+      "name": "Prometheus Metrics",
+      "method": "GET"
+    }
+  ],
+  "static_summary": ""
+}
+

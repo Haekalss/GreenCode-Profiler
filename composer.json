@@ -1,0 +1,19 @@
+{
+    "name": "greencode/profiler",
+    "description": "Universal Process-Level Energy Profiler for Laravel, PHP, Node.js, and Go",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "GreenCode Team",
+            "email": "developer@greencode.org"
+        }
+    ],
+    "bin": [
+        "bin/greencode.php"
+    ],
+    "require": {
+        "php": ">=8.0"
+    }
+}
+

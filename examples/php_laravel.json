@@ -1,0 +1,30 @@
+{
+  "project_name": "Laravel Backend API",
+  "runtime": "php",
+  "base_url": "http://127.0.0.1:8000",
+  "cpu_tdp_watts": 15.0,
+  "repeats": 5,
+  "auth": {
+    "type": "bearer",
+    "token": "your-jwt-or-sanctum-token-here"
+  },
+  "endpoints": [
+    {
+      "path": "/api/users",
+      "name": "User List",
+      "method": "GET"
+    },
+    {
+      "path": "/api/posts",
+      "name": "Posts Index",
+      "method": "GET"
+    },
+    {
+      "path": "/api/reports/export",
+      "name": "Export Document",
+      "method": "GET"
+    }
+  ],
+  "static_summary": ""
+}
+

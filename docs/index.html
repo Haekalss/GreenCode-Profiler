@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenCode Profiler</title>
+  <meta name="description" content="Process-level energy profiler & static code quality analyzer for PHP, Node.js, Python, and Go.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --card-bg: #f8fafc;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 1px solid var(--border);
+      background: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .btn-github {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text) !important;
+      font-weight: 600;
+      background: var(--card-bg);
+    }
+
+    /* MAIN CONTENT */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* HERO */
+    .hero {
+      margin-bottom: 48px;
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #0f172a;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 760px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-action-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-action-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-action-secondary {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-action-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .copy-btn {
+      background: #334155;
+      color: #f8fafc;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: #475569;
+    }
+
+    /* TYPOGRAPHY */
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: #0f172a;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+      color: #0f172a;
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: #334155;
+    }
+
+    ul, ol {
+      margin: 0 0 16px 20px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 13.5px;
+      color: #0f766e;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 14px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+
+    /* CARDS */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .card h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+
+    .card p {
+      font-size: 14px;
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    /* TABS */
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+
+    .tab-item {
+      padding: 8px 16px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab-item.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--card-bg);
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    /* CLI COMMANDS STYLING */
+    .cmd-name {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      color: #0f172a;
+      background: #f1f5f9;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+
+    .cmd-example {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: #0f766e;
+      white-space: nowrap;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+      padding-top: 24px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">⚡ GreenCode Profiler</a>
+      <div class="nav-links">
+        <a href="#instalasi">Instalasi</a>
+        <a href="#fitur">Fitur</a>
+        <a href="#konfigurasi">Konfigurasi</a>
+        <a href="#cli">CLI Reference</a>
+        <a href="https://github.com" target="_blank" class="btn-github">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <!-- HERO -->
+    <div class="hero">
+      <h1>Universal Process-Level Energy &amp; Code Quality Profiler</h1>
+      <p>Tool pengukuran konsumsi energi komputasi murni dan analisis kualitas struktur kode untuk aplikasi web modern (PHP, Node.js, Python, Go).</p>
+      
+      <div class="hero-actions">
+        <a href="#instalasi" class="btn-action btn-action-primary">Mulai Instalasi &darr;</a>
+        <a href="https://github.com" target="_blank" class="btn-action btn-action-secondary">Repositori GitHub &rarr;</a>
+      </div>
+    </div>
+
+    <!-- TENTANG -->
+    <section>
+      <h2>Tentang GreenCode Profiler</h2>
+      <p>GreenCode Profiler adalah framework open-source yang dirancang untuk mengukur efisiensi energi perangkat lunak (*Green Software Engineering*) dengan mengisolasi proses aplikasi secara presisi.</p>
+      <p>Berbeda dari alat ukur tingkat mesin konvensional (seperti CodeCarbon) yang rentan terhadap gangguan socket jaringan dan proses sistem operasi lain, GreenCode Profiler hanya menghitung <strong>waktu CPU aktif murni</strong> ($t_{\text{user}} + t_{\text{system}}$) serta penggunaan memori fisik (RSS) dari proses target.</p>
+    </section>
+
+    <!-- FITUR -->
+    <section id="fitur">
+      <h2>Fitur Utama</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h4>Kebal Bias Jaringan (I/O Wait)</h4>
+          <p>Hanya mencatat waktu CPU saat memproses instruksi. Saat server menunggu paket database atau jaringan, waktu CPU bernilai 0 sehingga nilai Joule tidak membengkak semu.</p>
+        </div>
+        <div class="card">
+          <h4>Atribusi Granular Per-Endpoint</h4>
+          <p>Mengisolasi pengukuran energi untuk setiap endpoint HTTP secara spesifik, sehingga developer dapat langsung menemukan fungsi mana yang menjadi *energy hotspot*.</p>
+        </div>
+        <div class="card">
+          <h4>Built-in Code Quality Analyzer</h4>
+          <p>Menganalisis Cyclomatic Complexity (CCN), Maintainability Index, NCLOC, dan mendeteksi arsitektur buruk (*God Class, Fat Controller, Deep Nesting*) secara instan.</p>
+        </div>
+        <div class="card">
+          <h4>Language-Agnostic</h4>
+          <p>Mendukung PHP (Laravel), Node.js (Next.js/Express), Python (FastAPI/Django), dan Go (Gin/Fiber) tanpa perlu mengubah kode aplikasi target.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- INSTALASI -->
+    <section id="instalasi">
+      <h2>Instalasi &amp; Penggunaan</h2>
+      <p>Pilih ekosistem bahasa pemrograman yang Anda gunakan:</p>
+
+      <div class="tab-nav">
+        <button class="tab-item active" onclick="showTab('tab-node')">Node.js (npm)</button>
+        <button class="tab-item" onclick="showTab('tab-py')">Python (pip)</button>
+        <button class="tab-item" onclick="showTab('tab-php')">PHP (Composer)</button>
+        <button class="tab-item" onclick="showTab('tab-go')">Go (Golang)</button>
+      </div>
+
+      <div id="tab-node" class="tab-panel active">
+        <p>Penggunaan di ekosistem Node.js / TypeScript:</p>
+        <pre># 1. Jalankan langsung via npx (tanpa install):
+npx greencode-profiler run
+
+# Atau install secara global:
+npm install -g greencode-profiler
+greencode run</pre>
+      </div>
+
+      <div id="tab-py" class="tab-panel">
+        <p>Instalasi melalui pip:</p>
+        <pre># 1. Install package
+pip install greencode-profiler
+
+# 2. Jalankan profiling dari file greencode.json
+greencode run</pre>
+      </div>
+
+      <div id="tab-php" class="tab-panel">
+        <p>Penggunaan di project PHP / Laravel:</p>
+        <pre># 1. Install via Composer
+composer require --dev greencode/profiler
+
+# 2. Jalankan profiling
+vendor/bin/greencode run</pre>
+      </div>
+
+      <div id="tab-go" class="tab-panel">
+        <p>Penggunaan di project Go:</p>
+        <pre># 1. Install CLI binary
+go install github.com/greencode-org/greencode@latest
+
+# 2. Jalankan profiling
+greencode run</pre>
+      </div>
+    </section>
+
+    <!-- KONFIGURASI -->
+    <section id="konfigurasi">
+      <h2>Konfigurasi (greencode.json)</h2>
+      <p>Profiling dikonfigurasi melalui berkas <code>greencode.json</code> sederhana di direktori root aplikasi:</p>
+
+      <pre>{
+  "project_name": "My Web Application",
+  "runtime": "php",
+  "source_dir": "app",
+  "base_url": "http://127.0.0.1:8000",
+  "repeats": 5,
+  "cpu_tdp_watts": 15.0,
+  "auth": {
+    "type": "bearer",
+    "token": "optional-token"
+  },
+  "endpoints": [
+    { "path": "/api/users", "name": "List Users", "method": "GET" },
+    { "path": "/api/reports/export", "name": "Export Document", "method": "GET" }
+  ]
+}</pre>
+    </section>
+
+    <!-- CLI REFERENCE -->
+    <section id="cli">
+      <h2>Referensi Perintah CLI</h2>
+      <p>Perintah disusun berurutan sesuai alur kerja penggunaan:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Perintah</th>
+            <th>Fungsi</th>
+            <th style="width: 35%;">Contoh Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="cmd-name">greencode init</span></td>
+            <td>Membuat file konfigurasi starter <code>greencode.json</code> otomatis sesuai bahasa project.</td>
+            <td><span class="cmd-example">greencode init --preset php</span></td>
+          </tr>
+          <tr>
+            <td><span class="cmd-name">greencode run</span></td>
+            <td>Menjalankan profiling lengkap (analisis struktur kode + konsumsi energi) dan membuka dashboard HTML.</td>
+            <td><span class="cmd-example">greencode run</span></td>
+          </tr>
+          <tr>
+            <td><span class="cmd-name">greencode analyze</span></td>
+            <td>Menganalisis kualitas struktur kode statis saja (CCN, NCLOC, Maintainability Index, dan Code Smells).</td>
+            <td><span class="cmd-example">greencode analyze ./src</span></td>
+          </tr>
+          <tr>
+            <td><span class="cmd-name">greencode detect</span></td>
+            <td>Mendiagnosa dan menampilkan proses server yang sedang aktif mendengarkan port.</td>
+            <td><span class="cmd-example">greencode detect</span></td>
+          </tr>
+          <tr>
+            <td><span class="cmd-name">greencode ui</span></td>
+            <td>Membuka kembali dashboard laporan HTML hasil profiling terakhir di web browser.</td>
+            <td><span class="cmd-example">greencode ui</span></td>
+          </tr>
+          <tr>
+            <td><span class="cmd-name">greencode help</span></td>
+            <td>Menampilkan panduan bantuan semua perintah atau perintah spesifik.</td>
+            <td><span class="cmd-example">greencode help run</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- PERBANDINGAN -->
+    <section>
+      <h2>Perbandingan Teknis</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Kriteria</th>
+            <th>Profiler Tingkat Mesin (CodeCarbon)</th>
+            <th>GreenCode Profiler</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Dasar Waktu</td>
+            <td>Wall-Clock Time (Jam Dinding)</td>
+            <td>CPU Active Time ($t_{\text{user}} + t_{\text{sys}}$)</td>
+          </tr>
+          <tr>
+            <td>Kekebalan I/O Wait</td>
+            <td>Rentan (membengkak saat jaringan lambat)</td>
+            <td>Kebal (mengabaikan waktu tunggu socket)</td>
+          </tr>
+          <tr>
+            <td>Granularitas</td>
+            <td>1 angka total agregat mesin</td>
+            <td>Granular per-endpoint &amp; per-modul</td>
+          </tr>
+          <tr>
+            <td>Analisis Kualitas Kode</td>
+            <td>Tidak ada</td>
+            <td>Built-in (CCN, LOC, Smells)</td>
+          </tr>
+          <tr>
+            <td>Dukungan Ekosistem</td>
+            <td>Terbatas pada Python</td>
+            <td>Agnostik (PHP, Node.js, Python, Go)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div>GreenCode Profiler &bull; Open-Source Software Energy Measurement</div>
+      <div>Lisensi MIT &bull; <a href="https://github.com" target="_blank">GitHub</a></div>
+    </footer>
+  </main>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

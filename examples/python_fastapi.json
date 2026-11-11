@@ -1,0 +1,27 @@
+{
+  "project_name": "FastAPI Machine Learning Service",
+  "runtime": "python",
+  "base_url": "http://127.0.0.1:8000",
+  "cpu_tdp_watts": 15.0,
+  "repeats": 5,
+  "auth": {
+    "type": "none"
+  },
+  "endpoints": [
+    {
+      "path": "/",
+      "name": "Root Ping",
+      "method": "GET"
+    },
+    {
+      "path": "/predict",
+      "name": "Model Inference",
+      "method": "POST",
+      "body": {
+        "features": [1.2, 3.4, 5.6]
+      }
+    }
+  ],
+  "static_summary": ""
+}
+

@@ -1,0 +1,55 @@
+{
+  "project_name": "SMKI Aptika Diskominfosanditik",
+  "runtime": "php",
+  "base_url": "http://127.0.0.1:8001",
+  "cpu_tdp_watts": 15.0,
+  "repeats": 5,
+  "auth": {
+    "type": "bearer",
+    "token": ""
+  },
+  "endpoints": [
+    {
+      "path": "/api/smki/laporan-kerusakan",
+      "name": "List Laporan Kerusakan",
+      "method": "GET"
+    },
+    {
+      "path": "/api/smki/daftar-rekaman",
+      "name": "List Daftar Rekaman",
+      "method": "GET"
+    },
+    {
+      "path": "/api/smki/notulen",
+      "name": "List Notulen",
+      "method": "GET"
+    },
+    {
+      "path": "/api/smki/evaluasi-penyedia",
+      "name": "List Evaluasi Penyedia",
+      "method": "GET"
+    },
+    {
+      "path": "/api/smki/review-hak-akses",
+      "name": "List Review Hak Akses",
+      "method": "GET"
+    },
+    {
+      "path": "/api/smki/daftar-rekaman/export-docx",
+      "name": "Export DOCX Rekaman",
+      "method": "GET"
+    },
+    {
+      "path": "/api/smki/berita-acara/export-docx",
+      "name": "Export DOCX Berita Acara",
+      "method": "GET"
+    },
+    {
+      "path": "/api/smki/software-standar/export-docx",
+      "name": "Export DOCX Software Standar",
+      "method": "GET"
+    }
+  ],
+  "static_summary": "../smki-analysis/before/results/summary.json"
+}
+
