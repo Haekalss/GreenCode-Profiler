@@ -121,27 +121,5 @@ Dashboard yang dihasilkan (`reports/greencode_report.html`) menyajikan:
 
 ---
 
-## 📦 Cara Mempublikasikan ke GitHub & Umum
-
-1. **Inisialisasi Git di folder framework:**
-   ```bash
-   cd framework-greencode
-   git init
-   git add .
-   git commit -m "feat: release GreenCode Profiler v1.0.0"
-   ```
-2. **Hubungkan ke Repositori GitHub Anda:**
-   ```bash
-   git remote add origin https://github.com/USERNAME_ANDA/greencode-profiler.git
-   git branch -M main
-   git push -u origin main
-   ```
-3. **Orang lain sekarang bisa menggunakannya langsung:**
-   ```bash
-   pip install git+https://github.com/USERNAME_ANDA/greencode-profiler.git
-   ```
-
----
-
 ## 📄 Lisensi
 Didistribusikan di bawah lisensi open-source **MIT License**. Lihat [`LICENSE`](LICENSE) untuk informasi lebih lanjut.
