@@ -165,9 +165,14 @@ def cmd_analyze(args):
             print(f" ! [{sm['severity']}] {sm['type']}: {sm['message'][:80]}...")
 
     output_json = os.path.join("reports", "code_quality.json")
+    output_html = os.path.join("reports", "code_quality.html")
     ReportGenerator.save_json(res, output_json)
-    print(f"\nHasil lengkap tersimpan di: {os.path.abspath(output_json)}")
+    ReportGenerator.generate_code_quality_html(res, output_html)
+    print(f"\nHasil JSON tersimpan di : {os.path.abspath(output_json)}")
+    print(f"Laporan HTML tersimpan di: {os.path.abspath(output_html)}")
     print("================================================================\n")
+    if not getattr(args, 'no_open', False):
+        ReportGenerator.open_in_browser(output_html)
     return res
 
 def cmd_ui(args):
@@ -338,6 +343,7 @@ def main():
     # Subcommand: analyze
     p_analyze = subparsers.add_parser("analyze", help="Analisis kualitas struktur kode statis (NCLOC, CCN, MI, Code Smells)")
     p_analyze.add_argument("path", nargs="?", default=".", help="Direktori kode yang ingin dianalisis (default: .)")
+    p_analyze.add_argument("--no-open", action="store_true", help="Jangan otomatis buka browser setelah selesai")
 
     # Subcommand: ui / dashboard
     p_ui = subparsers.add_parser("ui", help="Buka dashboard HTML hasil profiling di browser")

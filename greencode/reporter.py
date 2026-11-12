@@ -352,3 +352,283 @@ class ReportGenerator:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
         return output_path
+
+    @staticmethod
+    def generate_code_quality_html(data, output_path):
+        """Menghasilkan laporan HTML bersih khusus untuk analisis struktur kode statis (greencode analyze)."""
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+        overview = data.get('overview', {})
+        top_funcs = data.get('top_complex_functions', [])
+        code_smells = data.get('code_smells', [])
+        files = data.get('files', [])
+
+        grade = overview.get('maintainability_grade', 'B')
+        grade_badge = "badge-danger" if grade in ['D', 'E'] else ("badge-warning" if grade == 'C' else "badge-normal")
+
+        # 1. Baris Top Fungsi Kompleks
+        func_rows = ""
+        if top_funcs:
+            for fn in top_funcs[:25]:
+                ccn = fn.get('ccn', 1)
+                ccn_badge = "badge-danger" if ccn > 15 else ("badge-warning" if ccn > 10 else "badge-normal")
+                func_rows += f"""
+                <tr>
+                    <td><strong>{fn['name']}</strong></td>
+                    <td><code>{fn['file']}:{fn['line']}</code></td>
+                    <td><span class="badge {ccn_badge}">CCN {ccn}</span></td>
+                    <td>{fn['lines']} baris</td>
+                </tr>
+                """
+        else:
+            func_rows = "<tr><td colspan='4' class='text-muted' style='text-align:center;'>Tidak ada data fungsi.</td></tr>"
+
+        # 2. Baris Code Smells
+        smell_rows = ""
+        if code_smells:
+            for s in code_smells[:35]:
+                sev_badge = "badge-danger" if s['severity'] == 'HIGH' else "badge-warning"
+                sev_text = "Tinggi" if s['severity'] == 'HIGH' else "Sedang"
+                smell_rows += f"""
+                <tr>
+                    <td><span class="badge {sev_badge}">{s['type']}</span></td>
+                    <td><code>{s['file']}</code></td>
+                    <td><span class="badge {sev_badge}">{sev_text}</span></td>
+                    <td>{s['message']}</td>
+                </tr>
+                """
+        else:
+            smell_rows = "<tr><td colspan='4' class='text-muted' style='text-align:center;'>Tidak ada code smell terdeteksi.</td></tr>"
+
+        # 3. Baris Berkas Terpindai
+        file_rows = ""
+        for f in files[:40]:
+            mi = f.get('maintainability_index', 100)
+            mi_badge = "badge-danger" if mi < 50 else ("badge-warning" if mi < 70 else "badge-normal")
+            file_rows += f"""
+            <tr>
+                <td><code>{f['file']}</code></td>
+                <td>{f.get('language', '-')}</td>
+                <td>{f.get('ncloc', 0):,}</td>
+                <td><strong>{f.get('ccn', 1)}</strong></td>
+                <td><span class="badge {mi_badge}">{mi}</span></td>
+                <td>{f.get('functions_count', 0)}</td>
+                <td>{f.get('smells_count', 0)}</td>
+            </tr>
+            """
+
+        html_content = f"""<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Kualitas Struktur Kode - GreenCode Analyzer</title>
+    <style>
+        :root {{
+            --bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --card-bg: #f8fafc;
+        }}
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 30px 20px;
+            font-size: 14px;
+        }}
+        .container {{ max-width: 960px; margin: 0 auto; }}
+        
+        header {{
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }}
+        h1 {{ font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }}
+        .meta-info {{ color: var(--text-muted); font-size: 13px; }}
+
+        .summary-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 32px;
+        }}
+        .summary-card {{
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px 16px;
+        }}
+        .summary-label {{ font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }}
+        .summary-value {{ font-size: 22px; font-weight: 700; color: #0f172a; margin: 4px 0; }}
+        .summary-sub {{ font-size: 12px; color: var(--text-muted); }}
+
+        section {{ margin-bottom: 32px; }}
+        h2 {{ font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }}
+        
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }}
+        th, td {{
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }}
+        th {{
+            background: var(--card-bg);
+            font-weight: 600;
+            color: #334155;
+            font-size: 12px;
+        }}
+        tr:last-child td {{ border-bottom: none; }}
+        tr:hover td {{ background: #f8fafc; }}
+
+        .badge {{
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }}
+        .badge-danger {{ background: #fee2e2; color: #991b1b; }}
+        .badge-warning {{ background: #fef3c7; color: #92400e; }}
+        .badge-normal {{ background: #e2e8f0; color: #334155; }}
+
+        code {{
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: #f1f5f9;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #334155;
+        }}
+        .text-muted {{ color: var(--text-muted); }}
+
+        footer {{
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 40px;
+        }}
+
+        @media print {{
+            body {{ padding: 0; font-size: 12px; }}
+            .container {{ max-width: 100%; }}
+            .summary-card {{ border: 1px solid #ccc; }}
+            table {{ border: 1px solid #ccc; }}
+            th, td {{ border-bottom: 1px solid #ccc; padding: 6px 8px; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Laporan Kualitas Struktur Kode</h1>
+            <div class="meta-info">
+                Direktori: <code>{overview.get('scanned_directory', '-')}</code> &bull;
+                Waktu: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+            </div>
+        </header>
+
+        <!-- RINGKASAN METRIK -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Total Berkas &amp; Baris</div>
+                <div class="summary-value">{overview.get('total_files', 0)} file</div>
+                <div class="summary-sub">{overview.get('total_ncloc', 0):,} NCLOC (baris kode murni)</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Kompleksitas (CCN)</div>
+                <div class="summary-value">{overview.get('total_ccn', 0)}</div>
+                <div class="summary-sub">Rata-rata: {overview.get('average_ccn_per_file', 0)} per berkas</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Maintainability Index</div>
+                <div class="summary-value">{overview.get('average_maintainability_index', 0)} <small style="font-size: 13px; color: var(--text-muted);">/ 100</small></div>
+                <div class="summary-sub">Predikat: <strong>Grade {grade}</strong></div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Temuan Code Smells</div>
+                <div class="summary-value">{overview.get('total_code_smells', 0)}</div>
+                <div class="summary-sub">Fat Controller, God Class, Deep Nesting</div>
+            </div>
+        </div>
+
+        <!-- 1. TOP FUNGSI KOMPLEKS -->
+        <section>
+            <h2>1. Fungsi dengan Kompleksitas Tertinggi (CCN > 10)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Fungsi</th>
+                        <th>Lokasi Berkas</th>
+                        <th>Kompleksitas (CCN)</th>
+                        <th>Ukuran Baris</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {func_rows}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 2. CODE SMELLS -->
+        <section>
+            <h2>2. Temuan Architectural Code Smells</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipe</th>
+                        <th>Berkas</th>
+                        <th>Tingkat</th>
+                        <th>Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {smell_rows}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 3. DETAIL BERKAS -->
+        <section>
+            <h2>3. Ringkasan Per Berkas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Berkas</th>
+                        <th>Bahasa</th>
+                        <th>NCLOC</th>
+                        <th>CCN</th>
+                        <th>Maintainability Index</th>
+                        <th>Fungsi</th>
+                        <th>Smells</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {file_rows}
+                </tbody>
+            </table>
+        </section>
+
+        <footer>
+            Laporan dibuat otomatis oleh GreenCode Analyzer &bull; Profiler Kualitas &amp; Efisiensi Perangkat Lunak
+        </footer>
+    </div>
+</body>
+</html>
+"""
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        return output_path
