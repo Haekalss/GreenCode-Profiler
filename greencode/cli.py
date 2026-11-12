@@ -14,14 +14,14 @@ from datetime import datetime
 if __package__ is None or __package__ == "":
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from greencode.engine import ProcessEnergyEngine
-    from greencode.detector import RuntimeDetector
+    from greencode.detector import RuntimeDetector, RouteDiscoverer
     from greencode.attributor import ModuleAttributor
     from greencode.correlator import GreenCorrelator
     from greencode.analyzer import CodeQualityAnalyzer
     from greencode.reporter import ReportGenerator
 else:
     from .engine import ProcessEnergyEngine
-    from .detector import RuntimeDetector
+    from .detector import RuntimeDetector, RouteDiscoverer
     from .attributor import ModuleAttributor
     from .correlator import GreenCorrelator
     from .analyzer import CodeQualityAnalyzer
@@ -96,14 +96,23 @@ PRESETS = {
 }
 
 def cmd_init(args):
-    """Membuat file konfigurasi greencode.json awal berdasarkan preset bahasa."""
+    """Membuat file konfigurasi greencode.json awal berdasarkan preset bahasa dan auto-discover rute."""
     preset_key = (args.preset or 'auto').lower()
     if preset_key == 'auto':
         detected = RuntimeDetector.detect_project_ecosystem()
         preset_key = detected if detected != 'auto' else 'php'
         print(f"[GreenCode] Mendeteksi ekosistem project: {preset_key.upper()}")
 
-    template = PRESETS.get(preset_key, PRESETS['php'])
+    template = dict(PRESETS.get(preset_key, PRESETS['php']))
+    
+    # Deteksi rute/endpoint nyata dari codebase secara otomatis!
+    discovered_routes = RouteDiscoverer.discover(".", max_routes=10)
+    if discovered_routes:
+        template["endpoints"] = discovered_routes
+        print(f"[GreenCode] Berhasil mendeteksi {len(discovered_routes)} rute nyata dari project secara otomatis!")
+    else:
+        print("[GreenCode] Tidak menemukan rute otomatis, menggunakan contoh template.")
+
     output_path = args.output or "greencode.json"
     
     if os.path.exists(output_path) and not args.force:
@@ -114,7 +123,7 @@ def cmd_init(args):
         json.dump(template, f, indent=2)
     
     print(f"[GreenCode] Sukses membuat template konfigurasi: {output_path}")
-    print(f"            Preset: {preset_key.upper()}")
+    print(f"            Preset : {preset_key.upper()}")
     print("            Jalankan 'greencode run' untuk memulai profiling!")
 
 def cmd_detect(args):
@@ -243,6 +252,15 @@ def cmd_run(args):
 
     print(f"[GreenCode] Terhubung ke {len(pids)} proses aktif: PID {pids}")
 
+    # 2.5 Auto-Discover Endpoints jika kosong atau masih dummy contoh template (/api/hello, /api/items)
+    is_dummy = endpoints and all(ep.get('path') in ['/api/hello', '/api/items'] for ep in endpoints)
+    if not endpoints or is_dummy:
+        print("[GreenCode] Mendeteksi rute/halaman nyata dari project secara otomatis...")
+        discovered = RouteDiscoverer.discover(".", max_routes=10)
+        if discovered:
+            endpoints = discovered
+            print(f"[GreenCode] Menggunakan {len(endpoints)} rute nyata yang terdeteksi otomatis!")
+
     # 3. Setup Headers
     headers = {'Accept': 'application/json'}
     if auth.get('type') == 'bearer' and auth.get('token'):
@@ -321,6 +339,21 @@ def cmd_run(args):
     if not args.no_open:
         ReportGenerator.open_in_browser(html_path)
 
+def cmd_routes(args):
+    """Menampilkan semua rute yang otomatis terdeteksi dari codebase."""
+    target_path = args.path or "."
+    limit = getattr(args, 'limit', 30) or 30
+    routes = RouteDiscoverer.discover(target_path, max_routes=limit)
+    print("================================================================")
+    print("      GREENCODE AUTOMATIC ROUTE DISCOVERY                       ")
+    print("================================================================")
+    print(f"Direktori Target : {os.path.abspath(target_path)}")
+    print(f"Total Ditemukan  : {len(routes)} rute nyata")
+    print("----------------------------------------------------------------")
+    for r in routes:
+        print(f" - [{r.get('method', 'GET'):<4}] {r['path']:<35} ({r.get('name', '')})")
+    print("================================================================\n")
+
 def main():
     parser = argparse.ArgumentParser(
         prog="greencode",
@@ -349,6 +382,11 @@ def main():
     p_ui = subparsers.add_parser("ui", help="Buka dashboard HTML hasil profiling di browser")
     p_ui.add_argument("--report", "-r", help="Path file HTML report kustom")
 
+    # Subcommand: routes / discover
+    p_routes = subparsers.add_parser("routes", help="Deteksi otomatis rute/endpoint dari codebase project")
+    p_routes.add_argument("path", nargs="?", default=".", help="Direktori project yang ingin dipindai (default: .)")
+    p_routes.add_argument("--limit", type=int, default=30, help="Batas maksimal rute yang ditampilkan")
+
     # Subcommand: run
     p_run = subparsers.add_parser("run", help="Jalankan profiling lengkap dari file konfigurasi")
     p_run.add_argument("config", nargs="?", default="greencode.json", help="Path file konfigurasi (default: greencode.json)")
@@ -366,6 +404,8 @@ def main():
         cmd_detect(args)
     elif args.command == "analyze":
         cmd_analyze(args)
+    elif args.command == "routes":
+        cmd_routes(args)
     elif args.command == "ui":
         cmd_ui(args)
     elif args.command == "help":
