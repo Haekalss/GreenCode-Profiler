@@ -210,6 +210,83 @@ class ReportGenerator:
         .text-danger {{ color: #b91c1c; }}
         .font-semibold {{ font-weight: 600; }}
 
+        /* GLOSSARY & EXPLANATION */
+        .glossary-section {{
+            margin-top: 36px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }}
+        .glossary-title {{
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }}
+        .glossary-subtitle {{
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }}
+        .glossary-category {{
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 16px 0 10px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }}
+        .glossary-category:first-of-type {{ margin-top: 0; }}
+        .glossary-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }}
+        .glossary-item {{
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 14px;
+            font-size: 12.5px;
+        }}
+        .glossary-item-title {{
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }}
+        .glossary-item-tag {{
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            color: #475569;
+        }}
+        .glossary-desc {{
+            color: #334155;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }}
+        .glossary-impact {{
+            background: #f1f5f9;
+            border-left: 3px solid #0f766e;
+            padding: 6px 8px;
+            font-size: 11.5px;
+            color: #1e293b;
+            border-radius: 0 4px 4px 0;
+            line-height: 1.45;
+        }}
+        th[title] {{
+            cursor: help;
+            border-bottom: 1px dotted #94a3b8;
+        }}
+
         footer {{
             border-top: 1px solid var(--border);
             padding-top: 16px;
@@ -269,15 +346,15 @@ class ReportGenerator:
             <table>
                 <thead>
                     <tr>
-                        <th>Modul</th>
-                        <th>Prioritas Refactor</th>
-                        <th>Request</th>
-                        <th>Latensi</th>
-                        <th>CPU Aktif</th>
-                        <th>Total Energi</th>
-                        <th>Energi/Req</th>
-                        <th>CCN</th>
-                        <th>LOC</th>
+                        <th title="Nama modul atau kelompok fitur yang dianalisis">Modul</th>
+                        <th title="Tingkat urgensi refactoring berdasarkan kombinasi konsumsi energi (Joule) dan kompleksitas kode (CCN)">Prioritas Refactor</th>
+                        <th title="Jumlah pemanggilan HTTP request ke modul selama durasi pengujian">Request</th>
+                        <th title="Rata-rata waktu tanggap dari klien mengirim request hingga selesai menerima respon (milidetik)">Latensi</th>
+                        <th title="Waktu prosesor murni (t_user + t_system) saat menjalankan instruksi kode (detik)">CPU Aktif</th>
+                        <th title="Total energi listrik fisik (Joule) yang dihabiskan prosesor untuk memproses modul ini">Total Energi</th>
+                        <th title="Rata-rata konsumsi energi listrik per 1 kali pemanggilan HTTP request">Energi/Req</th>
+                        <th title="Cyclomatic Complexity: Jumlah total cabang keputusan (if, switch, loop) pada fungsi-fungsi modul">CCN</th>
+                        <th title="Lines of Code: Total baris kode instruksi (NCLOC) pada modul ini">LOC</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -292,10 +369,10 @@ class ReportGenerator:
             <table>
                 <thead>
                     <tr>
-                        <th>Nama Fungsi</th>
-                        <th>Lokasi Berkas</th>
-                        <th>Kompleksitas (CCN)</th>
-                        <th>Ukuran Baris</th>
+                        <th title="Nama fungsi, method, atau controller handler">Nama Fungsi</th>
+                        <th title="Lokasi berkas dan baris fungsi dalam proyek">Lokasi Berkas</th>
+                        <th title="Cyclomatic Complexity Number (CCN): Jalur logika independen. Standar: 1-10 (Sehat), 11-20 (Sedang), >20 (Kritis)">Kompleksitas (CCN)</th>
+                        <th title="Panjang baris fungsi. Fungsi > 50 baris dianjurkan dipecah">Ukuran Baris</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -310,9 +387,9 @@ class ReportGenerator:
             <table>
                 <thead>
                     <tr>
-                        <th>Tipe</th>
-                        <th>Berkas</th>
-                        <th>Keterangan</th>
+                        <th title="Kategori bau kode arsitektural (misal: FAT_CONTROLLER, GOD_CLASS, DEEP_NESTING)">Tipe Smell</th>
+                        <th title="Berkas yang mengalami pelanggaran prinsip desain">Berkas</th>
+                        <th title="Deskripsi pelanggaran dan rekomendasi tindakan">Keterangan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -327,13 +404,13 @@ class ReportGenerator:
             <table>
                 <thead>
                     <tr>
-                        <th>Method</th>
-                        <th>URL</th>
-                        <th>Status</th>
-                        <th>Latensi</th>
-                        <th>CPU Aktif</th>
-                        <th>Energi</th>
-                        <th>RAM RSS</th>
+                        <th title="Metode HTTP (GET, POST, PUT, DELETE)">Method</th>
+                        <th title="Alamat URL endpoint API atau halaman yang diuji">URL</th>
+                        <th title="HTTP Status Code (200 = Berhasil, 404 = Not Found, 500 = Server Error)">Status</th>
+                        <th title="Total waktu tunggu respon dari sudut pandang klien (ms)">Latensi</th>
+                        <th title="Waktu komputasi murni CPU proses server (detik), mengabaikan waktu tunggu I/O">CPU Aktif</th>
+                        <th title="Energi listrik komputasi prosesor untuk request ini (Joule)">Energi</th>
+                        <th title="Resident Set Size: Memori fisik RAM aktual yang ditempati proses server (MB)">RAM RSS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -342,8 +419,124 @@ class ReportGenerator:
             </table>
         </section>
 
+        <!-- 5. GLOSARIUM & PANDUAN VARIABEL METRIK -->
+        <section class="glossary-section">
+            <div class="glossary-title">📖 Panduan Membaca Variabel &amp; Dampak Kualitas</div>
+            <div class="glossary-subtitle">Panduan singkat arti metrik, ambang batas, dan dampaknya terhadap efisiensi energi (Green Software) serta pemeliharaan sistem. <em>Arahkan kursor ke judul kolom tabel di atas untuk bantuan ringkas.</em></div>
+
+            <div class="glossary-category">⚡ 1. Metrik Komputasi &amp; Efisiensi Energi (Dynamic Profiling)</div>
+            <div class="glossary-grid">
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>CPU Aktif (Active Time)</span>
+                        <span class="glossary-item-tag">Detik (s)</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Waktu prosesor nyata mengeksekusi instruksi komputasi aplikasi (<code>t_user + t_system</code>), tanpa menghitung waktu idle saat menunggu I/O jaringan atau database.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Penentu utama konsumsi daya listrik CPU. Semakin tinggi CPU Aktif, semakin boros energi dan panas yang dihasilkan server.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>Total Energi &amp; Energi/Req</span>
+                        <span class="glossary-item-tag">Joule (J)</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Estimasi konsumsi energi listrik fisik prosesor (<code>E = P_active × t_CPU</code>). 1 Joule = 1 Watt·detik.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Metrik inti <em>Green Software Engineering</em>. Endpoint dengan Joule tinggi menandakan *energy hotspot* yang perlu dioptimasi algoritmanya.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>Latensi (Latency)</span>
+                        <span class="glossary-item-tag">Milidetik (ms)</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Total waktu tunggu dari saat request dikirim oleh klien hingga seluruh respon diterima kembali (Wall-Clock Time).</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Menentukan kepuasan pengguna (UX). Jika Latensi tinggi tapi CPU Aktif rendah, bottleneck ada di koneksi jaringan atau query database lambat.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>RAM RSS (Resident Set Size)</span>
+                        <span class="glossary-item-tag">Megabyte (MB)</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Kapasitas memori fisik (RAM) aktual yang dialokasikan dan sedang aktif digunakan oleh proses server di sistem operasi.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> RAM yang terus merangkak naik mengindikasikan <em>memory leak</em> atau alokasi buffer berlebih yang memicu lonjakan beban Garbage Collection dan risiko Out of Memory (OOM).</div>
+                </div>
+            </div>
+
+            <div class="glossary-category">📐 2. Metrik Kualitas Struktur Kode (Static Analysis)</div>
+            <div class="glossary-grid">
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>CCN (Cyclomatic Complexity)</span>
+                        <span class="glossary-item-tag">Skala Jalur Logika</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Jumlah jalur percabangan independen dalam fungsi (<code>if</code>, <code>else</code>, <code>switch</code>, <code>for</code>, <code>while</code>, operator logika).<br>
+                    <strong>Standar:</strong> 1-10 (Sehat/Rendah), 11-20 (Sedang), &gt;20 (Kritis/Rumit).</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> CCN tinggi menandakan logika berbelit-belit, rawan bug tersembunyi, sangat sulit diuji (unit testing), dan memaksa CPU mengevaluasi banyak instruksi percabangan.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>LOC &amp; NCLOC</span>
+                        <span class="glossary-item-tag">Baris Kode Murni</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> <em>Non-Comment Lines of Code</em> — jumlah baris instruksi kode efektif tanpa menghitung baris kosong dan komentar.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Berkas atau method dengan ribuan baris kode memperberat beban pemeliharaan (cognitive fatigue) dan menandakan minimnya modularitas program.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>Maintainability Index (MI)</span>
+                        <span class="glossary-item-tag">0 - 100 Skor</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Indeks gabungan dari Halstead Volume, CCN, dan LOC yang mengukur seberapa mudah kode dirawat dan dikembangkan di masa depan.<br>
+                    <strong>Grade:</strong> &gt;80 (A), 70-79 (B), 50-69 (C), &lt;50 (D/E).</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Skor MI yang rendah menandakan kode rapuh, sulit dimodifikasi oleh tim, dan berbiaya pemeliharaan tinggi.</div>
+                </div>
+            </div>
+
+            <div class="glossary-category">🚨 3. Temuan Pelanggaran Arsitektur (Code Smells)</div>
+            <div class="glossary-grid">
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>FAT_CONTROLLER</span>
+                        <span class="glossary-item-tag">High Severity</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Controller menampung terlalu banyak logika bisnis, kalkulasi data rumit, atau query database langsung (melebihi 300 baris / query inline) alih-alih mendelegasikannya ke Service / Repository Layer.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Melanggar prinsip <em>Single Responsibility</em>. Controller menjadi gemuk, tidak dapat digunakan ulang (non-reusable), dan sulit dilakukan unit testing.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>GOD_CLASS_OR_BLOAT</span>
+                        <span class="glossary-item-tag">High Severity</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Satu class raksasa yang mencoba mengelola terlalu banyak hal sekaligus (&gt;500 baris atau &gt;15 method), menjadi pusat ketergantungan seluruh modul.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Menjadi titik kegagalan tunggal (<em>Single Point of Failure</em>). Perubahan kecil pada satu fitur berisiko merusak fitur lainnya yang tidak terkait.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>DEEP_NESTING</span>
+                        <span class="glossary-item-tag">Medium / High</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Percabangan bersarang terlalu dalam (lebih dari 3-4 tingkat struktur <code>if / for / foreach</code>) membentuk kode piramida atau anak tangga.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Alur logika sangat sulit diikuti secara visual, meningkatkan beban mental developer, dan sering melewatkan kondisi batas (edge cases). Solusi: gunakan <em>Guard Clauses</em> (return early).</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>LONG_METHOD</span>
+                        <span class="glossary-item-tag">Medium Severity</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Satu fungsi/method memiliki panjang baris kode berlebihan (&gt;50 baris), menandakan fungsi melakukan lebih dari satu tugas.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Menyulitkan pengujian otomatis dan rawan menyembunyikan duplikasi algoritma. Solusi: terapkan refactoring <em>Extract Method</em>.</div>
+                </div>
+            </div>
+        </section>
+
         <footer>
-            Laporan dibuat otomatis oleh GreenCode Profiler v1.0
+            Laporan dibuat otomatis oleh GreenCode Profiler v1.1.0 &bull; Green Software Engineering Framework
         </footer>
     </div>
 </body>
@@ -513,6 +706,83 @@ class ReportGenerator:
         }}
         .text-muted {{ color: var(--text-muted); }}
 
+        /* GLOSSARY & EXPLANATION */
+        .glossary-section {{
+            margin-top: 36px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }}
+        .glossary-title {{
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }}
+        .glossary-subtitle {{
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }}
+        .glossary-category {{
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 16px 0 10px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }}
+        .glossary-category:first-of-type {{ margin-top: 0; }}
+        .glossary-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }}
+        .glossary-item {{
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 14px;
+            font-size: 12.5px;
+        }}
+        .glossary-item-title {{
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }}
+        .glossary-item-tag {{
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            color: #475569;
+        }}
+        .glossary-desc {{
+            color: #334155;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }}
+        .glossary-impact {{
+            background: #f1f5f9;
+            border-left: 3px solid #0f766e;
+            padding: 6px 8px;
+            font-size: 11.5px;
+            color: #1e293b;
+            border-radius: 0 4px 4px 0;
+            line-height: 1.45;
+        }}
+        th[title] {{
+            cursor: help;
+            border-bottom: 1px dotted #94a3b8;
+        }}
+
         footer {{
             border-top: 1px solid var(--border);
             padding-top: 16px;
@@ -571,10 +841,10 @@ class ReportGenerator:
             <table>
                 <thead>
                     <tr>
-                        <th>Nama Fungsi</th>
-                        <th>Lokasi Berkas</th>
-                        <th>Kompleksitas (CCN)</th>
-                        <th>Ukuran Baris</th>
+                        <th title="Nama fungsi, method, atau closure">Nama Fungsi</th>
+                        <th title="Lokasi berkas sumber dan nomor baris fungsi">Lokasi Berkas</th>
+                        <th title="Cyclomatic Complexity Number (CCN): Jumlah jalur percabangan logika independen. Skala: 1-10 (Sehat), 11-20 (Sedang), >20 (Kritis/Rumit)">Kompleksitas (CCN)</th>
+                        <th title="Panjang baris kode fungsi (NCLOC). Fungsi > 50 baris disarankan dipecah menjadi sub-fungsi">Ukuran Baris</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -589,10 +859,10 @@ class ReportGenerator:
             <table>
                 <thead>
                     <tr>
-                        <th>Tipe</th>
-                        <th>Berkas</th>
-                        <th>Tingkat</th>
-                        <th>Keterangan</th>
+                        <th title="Kategori pelanggaran arsitektur (misal: FAT_CONTROLLER, GOD_CLASS_OR_BLOAT, DEEP_NESTING, LONG_METHOD)">Tipe Smell</th>
+                        <th title="Berkas yang melanggar prinsip desain clean architecture">Berkas</th>
+                        <th title="Tingkat keparahan dampak (Tinggi = Kritis, Sedang = Waspada)">Tingkat</th>
+                        <th title="Deskripsi pelanggaran dan rekomendasi tindakan refactoring">Keterangan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -607,13 +877,13 @@ class ReportGenerator:
             <table>
                 <thead>
                     <tr>
-                        <th>Nama Berkas</th>
-                        <th>Bahasa</th>
-                        <th>NCLOC</th>
-                        <th>CCN</th>
-                        <th>Maintainability Index</th>
-                        <th>Fungsi</th>
-                        <th>Smells</th>
+                        <th title="Jalur berkas kode sumber yang dipindai">Nama Berkas</th>
+                        <th title="Bahasa pemrograman berkas">Bahasa</th>
+                        <th title="Non-Comment Lines of Code: Jumlah baris instruksi efektif tanpa baris kosong dan komentar">NCLOC</th>
+                        <th title="Total Cyclomatic Complexity dalam berkas ini">CCN</th>
+                        <th title="Maintainability Index (0-100): Kemudahan pemeliharaan kode (Grade A: >80, B: 70-79, C: 50-69, D/E: <50)">Maintainability Index</th>
+                        <th title="Jumlah fungsi atau method yang ditemukan dalam berkas">Fungsi</th>
+                        <th title="Jumlah pelanggaran bau kode (code smells) dalam berkas">Smells</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -622,8 +892,85 @@ class ReportGenerator:
             </table>
         </section>
 
+        <!-- 4. GLOSARIUM & PANDUAN VARIABEL METRIK -->
+        <section class="glossary-section">
+            <div class="glossary-title">📖 Panduan Membaca Variabel Kualitas Kode</div>
+            <div class="glossary-subtitle">Panduan singkat arti metrik kualitas kode, ambang batas ideal, dan dampaknya terhadap pemeliharaan serta stabilitas sistem. <em>Arahkan kursor ke judul kolom tabel di atas untuk bantuan ringkas.</em></div>
+
+            <div class="glossary-category">📐 1. Metrik Kualitas Struktur Kode (Static Analysis)</div>
+            <div class="glossary-grid">
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>CCN (Cyclomatic Complexity)</span>
+                        <span class="glossary-item-tag">Skala Jalur Logika</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Mengukur jumlah jalur percabangan logika independen (<code>if</code>, <code>else</code>, <code>switch</code>, <code>for</code>, <code>while</code>, operator logika).<br>
+                    <strong>Standar:</strong> 1-10 (Sehat/Rendah), 11-20 (Sedang), &gt;20 (Kritis/Rumit).</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> CCN tinggi menandakan fungsi berbelit-belit, rawan bug tersembunyi, sangat sulit diuji (unit testing), dan memperlambat pemahaman tim pengembang.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>LOC &amp; NCLOC</span>
+                        <span class="glossary-item-tag">Baris Kode Murni</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> <em>Non-Comment Lines of Code</em> — jumlah baris instruksi kode efektif tanpa menghitung baris kosong dan komentar.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Berkas atau fungsi dengan baris terlalu panjang memperbesar beban kognitif developer dan mengindikasikan pelanggaran modularitas sistem.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>Maintainability Index (MI)</span>
+                        <span class="glossary-item-tag">0 - 100 Skor</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Indeks gabungan dari Halstead Volume, CCN, dan LOC yang mengukur kemudahan merawat kode di masa depan.<br>
+                    <strong>Grade:</strong> &gt;80 (A), 70-79 (B), 50-69 (C), &lt;50 (D/E).</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Skor MI rendah menandakan kode rapuh, rentan menimbulkan regresi saat ditambahkan fitur baru, dan berbiaya perawatan tinggi.</div>
+                </div>
+            </div>
+
+            <div class="glossary-category">🚨 2. Temuan Pelanggaran Arsitektur (Architectural Code Smells)</div>
+            <div class="glossary-grid">
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>FAT_CONTROLLER</span>
+                        <span class="glossary-item-tag">Tingkat Tinggi (High)</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Controller menampung terlalu banyak logika bisnis, manipulasi data rumit, atau query database langsung (&gt;300 baris atau query inline) alih-alih mendelegasikannya ke Service / Repository Layer.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Melanggar prinsip <em>Single Responsibility</em>. Controller menjadi kembung, sulit diuji secara independen, dan logikanya tidak dapat dipakai ulang (non-reusable).</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>GOD_CLASS_OR_BLOAT</span>
+                        <span class="glossary-item-tag">Tingkat Tinggi (High)</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Satu class raksasa yang mencoba mengelola terlalu banyak tanggung jawab sekaligus (&gt;500 baris atau &gt;15 method), menjadi pusat ketergantungan seluruh modul.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Menjadi titik kegagalan tunggal (<em>Single Point of Failure</em>). Perubahan kecil pada satu fitur berisiko merusak fitur lainnya yang tidak terkait.</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>DEEP_NESTING</span>
+                        <span class="glossary-item-tag">Tingkat Sedang / Tinggi</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Percabangan bersarang terlalu dalam (lebih dari 3-4 tingkat struktur <code>if / for / foreach</code>) membentuk kode piramida atau anak tangga.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Alur logika sangat sulit dipahami secara visual dan sering melewatkan kondisi batas (edge cases). Solusi: gunakan <em>Guard Clauses</em> (return early).</div>
+                </div>
+
+                <div class="glossary-item">
+                    <div class="glossary-item-title">
+                        <span>LONG_METHOD</span>
+                        <span class="glossary-item-tag">Tingkat Sedang</span>
+                    </div>
+                    <div class="glossary-desc"><strong>Arti:</strong> Satu fungsi/method memiliki panjang baris kode berlebihan (&gt;50 baris), menandakan fungsi melakukan lebih dari satu tugas.</div>
+                    <div class="glossary-impact"><strong>Dampak:</strong> Menyulitkan pengujian otomatis dan rawan menyembunyikan duplikasi algoritma. Solusi: terapkan refactoring <em>Extract Method</em>.</div>
+                </div>
+            </div>
+        </section>
+
         <footer>
-            Laporan dibuat otomatis oleh GreenCode Analyzer &bull; Profiler Kualitas &amp; Efisiensi Perangkat Lunak
+            Laporan dibuat otomatis oleh GreenCode Analyzer v1.1.0 &bull; Profiler Kualitas &amp; Efisiensi Perangkat Lunak
         </footer>
     </div>
 </body>
