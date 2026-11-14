@@ -49,10 +49,20 @@ FUNC_PATTERNS = {
 
 class CodeQualityAnalyzer:
     def __init__(self, target_dir=".", ignore_dirs=None):
-        self.target_dir = os.path.abspath(target_dir)
+        if isinstance(target_dir, (list, tuple)):
+            self.target_dirs = [os.path.abspath(d) for d in target_dir if os.path.exists(d)]
+            self.target_dir = self.target_dirs[0] if self.target_dirs else os.path.abspath(".")
+        elif isinstance(target_dir, str) and ',' in target_dir:
+            self.target_dirs = [os.path.abspath(d.strip()) for d in target_dir.split(',') if os.path.exists(d.strip())]
+            self.target_dir = self.target_dirs[0] if self.target_dirs else os.path.abspath(".")
+        else:
+            self.target_dirs = [os.path.abspath(target_dir)]
+            self.target_dir = self.target_dirs[0]
+
         self.ignore_dirs = set(ignore_dirs or [
             'vendor', 'node_modules', '.git', 'dist', 'build', '.next',
-            'storage', 'reports', 'venv', '__pycache__', '.idea', '.vscode'
+            'storage', 'reports', 'venv', '__pycache__', '.idea', '.vscode',
+            'tools', 'mariadb', 'backup', 'data', 'temp', 'tmp'
         ])
         self.file_results = []
         self.function_results = []
@@ -244,16 +254,22 @@ class CodeQualityAnalyzer:
         self.function_results = []
         self.code_smells = []
 
-        for root, dirs, files in os.walk(self.target_dir):
-            if self.is_ignored(root):
-                dirs[:] = []
+        seen_files = set()
+        for t_dir in self.target_dirs:
+            if not os.path.exists(t_dir):
                 continue
+            for root, dirs, files in os.walk(t_dir):
+                if self.is_ignored(root):
+                    dirs[:] = []
+                    continue
 
-            for file in files:
-                ext = os.path.splitext(file)[1].lower()
-                if ext in SUPPORTED_EXTENSIONS:
-                    full_path = os.path.join(root, file)
-                    self.analyze_file(full_path)
+                for file in files:
+                    ext = os.path.splitext(file)[1].lower()
+                    if ext in SUPPORTED_EXTENSIONS:
+                        full_path = os.path.join(root, file)
+                        if full_path not in seen_files:
+                            seen_files.add(full_path)
+                            self.analyze_file(full_path)
 
         total_files = len(self.file_results)
         total_ncloc = sum(f['ncloc'] for f in self.file_results)
@@ -266,7 +282,7 @@ class CodeQualityAnalyzer:
 
         summary = {
             'overview': {
-                'scanned_directory': self.target_dir,
+                'scanned_directory': ', '.join(self.target_dirs),
                 'total_files': total_files,
                 'total_ncloc': total_ncloc,
                 'total_ccn': total_ccn,

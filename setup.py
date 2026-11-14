@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="greencode-profiler",
-    version="1.1.1",
+    version="1.2.0",
     description="Universal Process-Level Energy Profiler for PHP, Node.js, Python, and Go",
     author="GreenCode Team",
     packages=find_packages(),

@@ -23,11 +23,13 @@
    Hanya mengukur waktu CPU aktif murni ($t_{\text{user}} + t_{\text{system}}$). Bebas dari bias latency database atau koneksi internet lambat yang sering mengacaukan alat ukur konvensional seperti CodeCarbon.
 2. **Built-in Static Code Quality Analyzer:**  
    Menganalisis Cyclomatic Complexity (CCN), Maintainability Index (MI), NCLOC, dan mendeteksi arsitektur buruk (_God Class, Fat Controller, Deep Nesting_) secara instan tanpa perlu menginstall SonarQube atau Lizard.
-3. **Automatic Route & Endpoint Discovery:**  
+3. **Full-Stack Monorepo (FE + BE) & Multi-Service Discovery:**  
+   Mampu memindai satu workspace monorepo dengan folder Frontend (`Next.js / React`) dan Backend (`Laravel / Python / Go`) secara simultan, menemukan rute kedua sisi secara otomatis, dan memprofil kedua port (misal 3000 & 8000) tanpa konfigurasi rumit.
+4. **Automatic Route & Endpoint Discovery:**  
    Mendeteksi otomatis seluruh halaman dan rute API nyata dari struktur kode project (Next.js App/Pages Router, Laravel Routes, Express, FastAPI, Go) tanpa perlu konfigurasi manual.
-4. **Universal & Language-Agnostic:**  
+5. **Universal & Language-Agnostic:**  
    Bekerja dari luar proses. Mendukung **Node.js (Next.js/Express), PHP (Laravel), Python (FastAPI/Django), dan Go (Gin/Fiber)** tanpa modifikasi kode aplikasi target.
-5. **Clean & Print-Friendly HTML Reports:**  
+6. **Clean & Print-Friendly HTML Reports:**  
    Menghasilkan laporan HTML yang bersih, profesional, berlatar terang (putih), siap dicetak sebagai lampiran PDF dokumen teknis/skripsi, baik untuk profiling energi (`greencode run`) maupun analisis kualitas kode (`greencode analyze`).
 
 ---

@@ -4,7 +4,7 @@ Universal Process-Level Energy Profiler & Green-Maintainability Framework.
 Language-Agnostic: Supports PHP, Node.js, Python, Go, and compiled backend services.
 """
 
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 __author__ = "GreenCode Team"
 
 from .engine import ProcessEnergyEngine

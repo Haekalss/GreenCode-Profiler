@@ -1,6 +1,6 @@
 {
   "name": "greencode-profiler",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Universal Process-Level Energy Profiler for Node.js, PHP, Python, and Go",
   "main": "bin/greencode.js",
   "bin": {

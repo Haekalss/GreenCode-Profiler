@@ -28,6 +28,26 @@ else:
     from .reporter import ReportGenerator
 
 PRESETS = {
+    'fullstack': {
+        "project_name": "Full-Stack Web App (FE + BE)",
+        "runtime": "fullstack",
+        "source_dirs": ["aptika_be/app", "aptika_fe/src"],
+        "services": {
+            "backend": "http://127.0.0.1:8000",
+            "frontend": "http://127.0.0.1:3000"
+        },
+        "base_url": "http://127.0.0.1:8000",
+        "auth": {
+            "type": "none"
+        },
+        "endpoints": [
+            {"path": "/", "name": "Frontend Home", "method": "GET", "service": "frontend"},
+            {"path": "/api/users", "name": "Backend Users API", "method": "GET", "service": "backend"}
+        ],
+        "repeats": 5,
+        "cpu_tdp_watts": 15.0,
+        "static_summary": ""
+    },
     'php': {
         "project_name": "PHP / Laravel Backend",
         "runtime": "php",
@@ -98,15 +118,34 @@ PRESETS = {
 def cmd_init(args):
     """Membuat file konfigurasi greencode.json awal berdasarkan preset bahasa dan auto-discover rute."""
     preset_key = (args.preset or 'auto').lower()
+    fs_info = None
     if preset_key == 'auto':
-        detected = RuntimeDetector.detect_project_ecosystem()
-        preset_key = detected if detected != 'auto' else 'php'
+        preset_key = RuntimeDetector.detect_project_ecosystem()
+        if preset_key == 'auto':
+            preset_key = 'php'
         print(f"[GreenCode] Mendeteksi ekosistem project: {preset_key.upper()}")
 
     template = dict(PRESETS.get(preset_key, PRESETS['php']))
     
+    # Konfigurasi cerdas jika ekosistem Full-Stack Monorepo terdeteksi
+    if preset_key == 'fullstack':
+        fs_info = RuntimeDetector.detect_fullstack_components(".")
+        if fs_info.get('is_fullstack'):
+            fe = fs_info['frontend']
+            be = fs_info['backend']
+            template["project_name"] = f"Full-Stack Monorepo ({fe['dir']} + {be['dir']})"
+            template["runtime"] = "fullstack"
+            template["source_dirs"] = [be['source_dir'], fe['source_dir']]
+            template["services"] = {
+                "backend": be['base_url'],
+                "frontend": fe['base_url']
+            }
+            template["base_url"] = be['base_url']
+            print(f"[GreenCode] Komponen Frontend terdeteksi : {fe['dir']} ({fe['framework'].upper()} di port {fe['default_port']})")
+            print(f"[GreenCode] Komponen Backend terdeteksi  : {be['dir']} ({be['framework'].upper()} di port {be['default_port']})")
+
     # Deteksi rute/endpoint nyata dari codebase secara otomatis!
-    discovered_routes = RouteDiscoverer.discover(".", max_routes=10)
+    discovered_routes = RouteDiscoverer.discover(".", max_routes=16)
     if discovered_routes:
         template["endpoints"] = discovered_routes
         print(f"[GreenCode] Berhasil mendeteksi {len(discovered_routes)} rute nyata dari project secara otomatis!")
@@ -214,49 +253,65 @@ def cmd_run(args):
     project_name = cfg.get('project_name', 'Web Service')
     runtime = cfg.get('runtime', 'auto')
     base_url = cfg.get('base_url', 'http://127.0.0.1:8000')
+    services = cfg.get('services', {})
     repeats = cfg.get('repeats', 5)
     cpu_tdp = cfg.get('cpu_tdp_watts', 15.0)
     endpoints = cfg.get('endpoints', [])
     auth = cfg.get('auth', {})
     static_summary = cfg.get('static_summary', None)
+    source_dirs = cfg.get('source_dirs')
     source_dir = cfg.get('source_dir', '.')
+    scan_targets = source_dirs if source_dirs else source_dir
 
     print("================================================================")
-    print(f"   GREENCODE PROFILER v1.0 - {project_name.upper()}   ")
+    print(f"   GREENCODE PROFILER v1.2.0 - {project_name.upper()}   ")
     print("================================================================")
-    print(f"Base URL : {base_url}")
+    if services:
+        print(f"Services : {', '.join([f'{k}: {v}' for k, v in services.items()])}")
+    else:
+        print(f"Base URL : {base_url}")
     print(f"Runtime  : {runtime.upper()}")
     print(f"Repeats  : {repeats}x per endpoint")
     print("----------------------------------------------------------------")
 
     # 1. Analisis Kualitas Struktur Kode (Built-in Analyzer)
     code_quality_data = {}
-    if os.path.exists(source_dir):
-        print(f"[GreenCode] [1/3] Menjalankan Analisis Kualitas Struktur Kode pada: {source_dir}...")
-        analyzer = CodeQualityAnalyzer(source_dir)
+    if isinstance(scan_targets, (list, tuple)):
+        valid_dirs = [d for d in scan_targets if os.path.exists(d)]
+        if valid_dirs:
+            print(f"[GreenCode] [1/3] Menjalankan Analisis Kualitas Struktur Kode pada {len(valid_dirs)} folder: {', '.join(valid_dirs)}...")
+            analyzer = CodeQualityAnalyzer(valid_dirs)
+            code_quality_data = analyzer.run_analysis()
+            ov = code_quality_data['overview']
+            print(f"            Files: {ov['total_files']} | NCLOC: {ov['total_ncloc']:,} | Avg CCN: {ov['average_ccn_per_file']} | MI: {ov['average_maintainability_index']}/100")
+        else:
+            print(f"[GreenCode] Catatan: Direktori source {scan_targets} tidak ditemukan. Melewati static code analysis.")
+    elif os.path.exists(scan_targets):
+        print(f"[GreenCode] [1/3] Menjalankan Analisis Kualitas Struktur Kode pada: {scan_targets}...")
+        analyzer = CodeQualityAnalyzer(scan_targets)
         code_quality_data = analyzer.run_analysis()
         ov = code_quality_data['overview']
         print(f"            Files: {ov['total_files']} | NCLOC: {ov['total_ncloc']:,} | Avg CCN: {ov['average_ccn_per_file']} | MI: {ov['average_maintainability_index']}/100")
     else:
-        print(f"[GreenCode] Catatan: Direktori source '{source_dir}' tidak ditemukan. Melewati static code analysis.")
+        print(f"[GreenCode] Catatan: Direktori source '{scan_targets}' tidak ditemukan. Melewati static code analysis.")
 
     # 2. Deteksi Target PIDs
-    print(f"[GreenCode] [2/3] Mendeteksi proses server aktif untuk {base_url}...")
+    print(f"[GreenCode] [2/3] Mendeteksi proses server aktif ({runtime.upper()})...")
     det = RuntimeDetector.find_pids(language=runtime, url=base_url)
     pids = det['pids']
     
     if not pids:
-        print(f"[GreenCode] PERINGATAN: Tidak ada proses {runtime.upper()} terdeteksi di {base_url}.")
+        print(f"[GreenCode] PERINGATAN: Tidak ada proses {runtime.upper()} terdeteksi.")
         print("            Pastikan server aplikasi Anda sudah dijalankan.")
         sys.exit(1)
 
     print(f"[GreenCode] Terhubung ke {len(pids)} proses aktif: PID {pids}")
 
-    # 2.5 Auto-Discover Endpoints jika kosong atau masih dummy contoh template (/api/hello, /api/items)
-    is_dummy = endpoints and all(ep.get('path') in ['/api/hello', '/api/items'] for ep in endpoints)
+    # 2.5 Auto-Discover Endpoints jika kosong atau masih dummy contoh template
+    is_dummy = endpoints and all(ep.get('path') in ['/api/hello', '/api/items', '/api/users', '/'] and not ep.get('url') for ep in endpoints)
     if not endpoints or is_dummy:
         print("[GreenCode] Mendeteksi rute/halaman nyata dari project secara otomatis...")
-        discovered = RouteDiscoverer.discover(".", max_routes=10)
+        discovered = RouteDiscoverer.discover(".", max_routes=16)
         if discovered:
             endpoints = discovered
             print(f"[GreenCode] Menggunakan {len(endpoints)} rute nyata yang terdeteksi otomatis!")
@@ -278,9 +333,15 @@ def cmd_run(args):
         name = ep.get('name', path)
         method = ep.get('method', 'GET')
         body = ep.get('body', None)
-        url = base_url + path
 
-        print(f"\n-> [{method}] {name} ({path})")
+        if ep.get('url'):
+            url = ep['url']
+        elif ep.get('service') and ep['service'] in services:
+            url = services[ep['service']].rstrip('/') + path
+        else:
+            url = base_url.rstrip('/') + path
+
+        print(f"\n-> [{method}] {name} ({url})")
         for i in range(1, repeats + 1):
             rec = attributor.trace_http_request(url, method=method, headers=headers, body=body)
             print(f"   Run {i}/{repeats} | HTTP {rec['status']:<3} | Latency: {rec['latency_ms']:6.1f} ms | CPU: {rec['cpu_active_time_s']:6.4f} s | Energi: {rec['energy_total_joules']:8.6f} J")
@@ -302,6 +363,7 @@ def cmd_run(args):
             'project_name': project_name,
             'runtime': runtime,
             'base_url': base_url,
+            'services': services,
             'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'cpu_tdp_watts': cpu_tdp
         },
@@ -351,25 +413,27 @@ def cmd_routes(args):
     print(f"Total Ditemukan  : {len(routes)} rute nyata")
     print("----------------------------------------------------------------")
     for r in routes:
-        print(f" - [{r.get('method', 'GET'):<4}] {r['path']:<35} ({r.get('name', '')})")
+        service_tag = f"[{r.get('service', '').upper()}] " if r.get('service') else ""
+        print(f" - [{r.get('method', 'GET'):<4}] {service_tag}{r['path']:<35} ({r.get('name', '')})")
     print("================================================================\n")
 
 def main():
     parser = argparse.ArgumentParser(
         prog="greencode",
-        description="GreenCode Profiler - Multi-Language Process-Level Energy & Code Quality Profiler"
+        description="GreenCode Profiler - Multi-Language Process-Level Energy & Code Quality Profiler (Supports PHP, Node.js, Python, Go, and Full-Stack Monorepo)"
     )
+    parser.add_argument("--version", "-v", action="version", version="GreenCode Profiler v1.2.0")
     subparsers = parser.add_subparsers(dest="command")
 
     # Subcommand: init
     p_init = subparsers.add_parser("init", help="Generate template konfigurasi greencode.json")
-    p_init.add_argument("--preset", choices=["php", "node", "python", "go", "auto"], default="auto", help="Preset bahasa target")
+    p_init.add_argument("--preset", choices=["php", "node", "python", "go", "fullstack", "auto"], default="auto", help="Preset bahasa target")
     p_init.add_argument("--output", "-o", default="greencode.json", help="Path file output")
     p_init.add_argument("--force", "-f", action="store_true", help="Timpa file jika sudah ada")
 
     # Subcommand: detect
     p_detect = subparsers.add_parser("detect", help="Diagnosa proses server aktif")
-    p_detect.add_argument("--language", "-l", choices=["php", "node", "python", "go", "auto"], default="auto")
+    p_detect.add_argument("--language", "-l", choices=["php", "node", "python", "go", "fullstack", "auto"], default="auto")
     p_detect.add_argument("--port", "-p", type=int, help="Port server yang ingin dicek")
     p_detect.add_argument("--url", "-u", help="URL server (misal: http://127.0.0.1:8000)")
 
