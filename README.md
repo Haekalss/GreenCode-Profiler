@@ -1,4 +1,9 @@
-# ⚡ GreenCode Profiler (GCP)
+<p align="center">
+  <img src="assets/logo.png" alt="GreenCode Profiler Logo" width="220" />
+</p>
+
+# GreenCode Profiler (GCP)
+
 **Universal Process-Level Energy & Code Quality Profiler for Modern Web Applications**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
@@ -8,7 +13,7 @@
 [![Go](https://img.shields.io/badge/Go-1.20+-00ADD8.svg?logo=go&logoColor=white)](https://golang.org)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%26%20Green-10b981.svg)]()
 
-> **GreenCode Profiler** adalah framework pengukuran efisiensi energi perangkat lunak (*Green Software Engineering*) yang menggabungkan **Analisis Kualitas Struktur Kode (Static Analysis)** dan **Konsumsi Energi Komputasi Murni (Dynamic Energy Profiling)** secara granular per-modul dan per-endpoint.
+> **GreenCode Profiler** adalah framework pengukuran efisiensi energi perangkat lunak (_Green Software Engineering_) yang menggabungkan **Analisis Kualitas Struktur Kode (Static Analysis)** dan **Konsumsi Energi Komputasi Murni (Dynamic Energy Profiling)** secara granular per-modul dan per-endpoint.
 
 ---
 
@@ -17,7 +22,7 @@
 1. **Kebal Bias Jaringan (I/O Wait Isolation):**  
    Hanya mengukur waktu CPU aktif murni ($t_{\text{user}} + t_{\text{system}}$). Bebas dari bias latency database atau koneksi internet lambat yang sering mengacaukan alat ukur konvensional seperti CodeCarbon.
 2. **Built-in Static Code Quality Analyzer:**  
-   Menganalisis Cyclomatic Complexity (CCN), Maintainability Index (MI), NCLOC, dan mendeteksi arsitektur buruk (*God Class, Fat Controller, Deep Nesting*) secara instan tanpa perlu menginstall SonarQube atau Lizard.
+   Menganalisis Cyclomatic Complexity (CCN), Maintainability Index (MI), NCLOC, dan mendeteksi arsitektur buruk (_God Class, Fat Controller, Deep Nesting_) secara instan tanpa perlu menginstall SonarQube atau Lizard.
 3. **Automatic Route & Endpoint Discovery:**  
    Mendeteksi otomatis seluruh halaman dan rute API nyata dari struktur kode project (Next.js App/Pages Router, Laravel Routes, Express, FastAPI, Go) tanpa perlu konfigurasi manual.
 4. **Universal & Language-Agnostic:**  
@@ -35,19 +40,25 @@ GreenCode Profiler dapat di-install langsung dari repositori GitHub resmi:
 Pilih metode instalasi sesuai ekosistem bahasa dan project Anda:
 
 ### 🟢 1. Node.js / Frontend (NPM)
+
 Cocok untuk project **Next.js, React, Express, atau CLI global**.
 
 **A. Install Global CLI (Rekomendasi - Bisa dipakai di semua folder):**
+
 ```bash
 npm install -g --force git+https://github.com/Haekalss/GreenCode-Profiler.git
 ```
-*(Gunakan `--force` untuk memastikan NPM selalu mengambil versi dan commit terbaru dari GitHub).*
+
+_(Gunakan `--force` untuk memastikan NPM selalu mengambil versi dan commit terbaru dari GitHub)._
 
 **B. Install Lokal sebagai Dev Dependency di Project:**
+
 ```bash
 npm install --save-dev git+https://github.com/Haekalss/GreenCode-Profiler.git
 ```
+
 Lalu jalankan via npx:
+
 ```bash
 npx greencode routes
 npx greencode run
@@ -56,14 +67,17 @@ npx greencode run
 ---
 
 ### 🐍 2. Python (Pip)
+
 Cocok untuk lingkungan **Python, FastAPI, Django, Flask, atau Data Science**.
 
 **Install / Upgrade dari GitHub:**
+
 ```bash
 pip install --upgrade --force-reinstall git+https://github.com/Haekalss/GreenCode-Profiler.git
 ```
 
 Setelah terinstall, perintah `greencode` langsung aktif di terminal:
+
 ```bash
 greencode routes
 greencode run
@@ -72,10 +86,12 @@ greencode run
 ---
 
 ### 🐘 3. PHP / Backend (Composer)
+
 Cocok untuk project **Laravel, Symfony, CodeIgniter, atau native PHP**.
 
 **Opsi A — Menggunakan Global CLI (Paling Mudah):**  
 Cukup install GreenCode secara global via NPM atau Pip di atas, lalu masuk ke folder project Laravel Anda dan langsung jalankan:
+
 ```bash
 cd path/to/laravel-project
 greencode routes   # Otomatis deteksi routes/api.php & routes/web.php
@@ -84,6 +100,7 @@ greencode run      # Jalankan profiling ke server php artisan serve
 
 **Opsi B — Pasang ke `composer.json` Project:**  
 Tambahkan VCS repository ke `composer.json` project Anda:
+
 ```json
 {
   "repositories": [
@@ -97,23 +114,29 @@ Tambahkan VCS repository ke `composer.json` project Anda:
   }
 }
 ```
+
 Kemudian jalankan:
+
 ```bash
 composer update haekalss/greencode-profiler
 ```
+
 Binary runner tersedia di `vendor/bin/greencode` atau script wrapper `php bin/greencode.php run`.
 
 ---
 
 ### 🐹 4. Go (Golang)
+
 Cocok untuk aplikasi berkinerja tinggi menggunakan **Gin, Fiber, Echo, atau Chi**.
 
 **A. Install Binary via `go install`:**
+
 ```bash
 go install github.com/Haekalss/GreenCode-Profiler/cmd/greencode@latest
 ```
 
 **B. Clone & Build Manual Executable:**
+
 ```bash
 git clone https://github.com/Haekalss/GreenCode-Profiler.git
 cd GreenCode-Profiler
@@ -127,15 +150,15 @@ go build -o bin/greencode.exe cmd/greencode/main.go
 
 ## 🛠️ Perintah CLI Lengkap
 
-| Perintah | Deskripsi |
-|---|---|
-| `greencode routes [dir]` | **(Baru)** Deteksi otomatis rute dan endpoint nyata dari codebase project (Next.js, Laravel, dll) |
-| `greencode run [config.json]` | Menjalankan analisis struktur kode + profiling energi runtime, dan menghasilkan laporan HTML |
-| `greencode analyze [dir]` | Menjalankan analisis kualitas struktur kode saja (CCN, LOC, MI, Smells) dan menghasilkan `reports/greencode_quality_report.html` |
-| `greencode detect` | Memindai dan mendiagnosa proses server aktif (Node, PHP, Python, Go) beserta PID dan port-nya |
-| `greencode init [--preset ...]` | Membuat template file konfigurasi `greencode.json` dengan rute yang otomatis terdeteksi |
-| `greencode ui` | Membuka laporan HTML dashboard hasil profiling di browser |
-| `greencode help [cmd]` | Menampilkan panduan bantuan semua perintah atau perintah spesifik |
+| Perintah                        | Deskripsi                                                                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `greencode routes [dir]`        | **(Baru)** Deteksi otomatis rute dan endpoint nyata dari codebase project (Next.js, Laravel, dll)                                |
+| `greencode run [config.json]`   | Menjalankan analisis struktur kode + profiling energi runtime, dan menghasilkan laporan HTML                                     |
+| `greencode analyze [dir]`       | Menjalankan analisis kualitas struktur kode saja (CCN, LOC, MI, Smells) dan menghasilkan `reports/greencode_quality_report.html` |
+| `greencode detect`              | Memindai dan mendiagnosa proses server aktif (Node, PHP, Python, Go) beserta PID dan port-nya                                    |
+| `greencode init [--preset ...]` | Membuat template file konfigurasi `greencode.json` dengan rute yang otomatis terdeteksi                                          |
+| `greencode ui`                  | Membuka laporan HTML dashboard hasil profiling di browser                                                                        |
+| `greencode help [cmd]`          | Menampilkan panduan bantuan semua perintah atau perintah spesifik                                                                |
 
 ---
 
@@ -154,7 +177,7 @@ go build -o bin/greencode.exe cmd/greencode/main.go
    ```bash
    greencode init
    ```
-   *(File `greencode.json` akan dibuat otomatis terisi dengan rute-rute nyata yang ditemukan)*.
+   _(File `greencode.json` akan dibuat otomatis terisi dengan rute-rute nyata yang ditemukan)_.
 5. **Jalankan Profiling:**
    ```bash
    greencode run
@@ -182,12 +205,17 @@ go build -o bin/greencode.exe cmd/greencode/main.go
   },
   "endpoints": [
     { "path": "/api/users", "name": "Get Users", "method": "GET" },
-    { "path": "/api/reports/export", "name": "Export Document", "method": "GET" }
+    {
+      "path": "/api/reports/export",
+      "name": "Export Document",
+      "method": "GET"
+    }
   ]
 }
 ```
 
 Template preset siap pakai tersedia di folder [`examples/`](examples/):
+
 - [`examples/php_laravel.json`](examples/php_laravel.json)
 - [`examples/node_nextjs.json`](examples/node_nextjs.json)
 - [`examples/python_fastapi.json`](examples/python_fastapi.json)
@@ -198,21 +226,24 @@ Template preset siap pakai tersedia di folder [`examples/`](examples/):
 
 ## 📊 Laporan Hasil Pengukuran (HTML Reports)
 
-GreenCode Profiler menghasilkan dua jenis laporan HTML berdesain bersih, terstruktur, dan siap cetak (*print-friendly*):
+GreenCode Profiler menghasilkan dua jenis laporan HTML berdesain bersih, terstruktur, dan siap cetak (_print-friendly_):
 
 ### 1. `reports/greencode_report.html` (Hasil `greencode run`)
+
 - **Executive Summary Cards:** Total Energi (Joule), Konsumsi Listrik (kWh), Estimasi Emisi Karbon (gCO2e), CPU Active Time (detik), dan Rata-rata Skor Maintainability Index (Grade A/B/C/D).
-- **Tab 1 — Green-Architecture Scorecard:** Tabel analisis korelasi konsumsi Joule vs Cyclomatic Complexity (CCN) per-modul untuk mendeteksi *energy hotspot*.
+- **Tab 1 — Green-Architecture Scorecard:** Tabel analisis korelasi konsumsi Joule vs Cyclomatic Complexity (CCN) per-modul untuk mendeteksi _energy hotspot_.
 - **Tab 2 — Static Code Quality & Smells:** Ringkasan temuan fungsi terkompleks, Fat Controller, God Class, dan Deep Nesting.
 - **Tab 3 — Runtime Latency & Memory:** Tabel latensi detail per-run, RSS RAM (MB), dan HTTP status code.
 - **Tab 4 — Refactoring Action Plan:** Panduan rekomendasi langkah refactoring berbasis arsitektur hijau.
 
 ### 2. `reports/greencode_quality_report.html` (Hasil `greencode analyze`)
+
 - Analisis struktur kode statis independen dengan skor CCN rata-rata & maksimum.
 - Tabel rincian kompleksitas seluruh fungsi dan kelas di seluruh codebase.
-- Deteksi pelanggaran arsitektur (*Architectural Smells*) yang dapat diekspor langsung ke dokumen skripsi/teknis.
+- Deteksi pelanggaran arsitektur (_Architectural Smells_) yang dapat diekspor langsung ke dokumen skripsi/teknis.
 
 ---
 
 ## 📄 Lisensi
+
 Didistribusikan di bawah lisensi open-source **MIT License**. Lihat [`LICENSE`](LICENSE) untuk informasi lebih lanjut.
