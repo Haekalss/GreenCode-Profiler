@@ -7,171 +7,131 @@
 **Universal Process-Level Energy & Code Quality Profiler for Modern Web Applications**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB.svg?logo=python&logoColor=white)](https://python.org)
-[![Node.js](https://img.shields.io/badge/Node.js-16+-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)
-[![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4.svg?logo=php&logoColor=white)](https://php.net)
-[![Go](https://img.shields.io/badge/Go-1.20+-00ADD8.svg?logo=go&logoColor=white)](https://golang.org)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%26%20Green-10b981.svg)]()
+[![Rust](https://img.shields.io/badge/Rust-1.100+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![Node.js](https://img.shields.io/badge/NPM-Launcher-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Architecture](https://img.shields.io/badge/Architecture-Rust%20Native%20Zero%20Cost-10b981.svg)]()
+[![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)]()
 
-> **GreenCode Profiler** adalah framework pengukuran efisiensi energi perangkat lunak (_Green Software Engineering_) yang menggabungkan **Analisis Kualitas Struktur Kode (Static Analysis)** dan **Konsumsi Energi Komputasi Murni (Dynamic Energy Profiling)** secara granular per-modul dan per-endpoint.
-
----
-
-## 🌟 Fitur Utama (The Complete Package)
-
-1. **Kebal Bias Jaringan (I/O Wait Isolation):**  
-   Hanya mengukur waktu CPU aktif murni ($t_{\text{user}} + t_{\text{system}}$). Bebas dari bias latency database atau koneksi internet lambat yang sering mengacaukan alat ukur konvensional seperti CodeCarbon.
-2. **Built-in Static Code Quality Analyzer:**  
-   Menganalisis Cyclomatic Complexity (CCN), Maintainability Index (MI), NCLOC, dan mendeteksi arsitektur buruk (_God Class, Fat Controller, Deep Nesting_) secara instan tanpa perlu menginstall SonarQube atau Lizard.
-3. **Full-Stack Monorepo (FE + BE) & Multi-Service Discovery:**  
-   Mampu memindai satu workspace monorepo dengan folder Frontend (`Next.js / React`) dan Backend (`Laravel / Python / Go`) secara simultan, menemukan rute kedua sisi secara otomatis, dan memprofil kedua port (misal 3000 & 8000) tanpa konfigurasi rumit.
-4. **Automatic Route & Endpoint Discovery:**  
-   Mendeteksi otomatis seluruh halaman dan rute API nyata dari struktur kode project (Next.js App/Pages Router, Laravel Routes, Express, FastAPI, Go) tanpa perlu konfigurasi manual.
-5. **Universal & Language-Agnostic:**  
-   Bekerja dari luar proses. Mendukung **Node.js (Next.js/Express), PHP (Laravel), Python (FastAPI/Django), dan Go (Gin/Fiber)** tanpa modifikasi kode aplikasi target.
-6. **Clean & Print-Friendly HTML Reports:**  
-   Menghasilkan laporan HTML yang bersih, profesional, berlatar terang (putih), siap dicetak sebagai lampiran PDF dokumen teknis/skripsi, baik untuk profiling energi (`greencode run`) maupun analisis kualitas kode (`greencode analyze`).
+> **GreenCode Profiler v1.2.0** adalah framework pengukuran efisiensi energi perangkat lunak (_Green Software Engineering_) berbasis **Rust Native Engine** yang menggabungkan **Analisis Kualitas Struktur Kode (Static Analysis)** dan **Konsumsi Energi Komputasi Murni (Dynamic Energy Profiling)** secara granular per-modul dan per-endpoint — tanpa overhead interpreter, tanpa dependensi eksternal.
 
 ---
 
-## 📦 Panduan Instalasi (Via GitHub Repository)
+## 🌟 Fitur Utama
 
-GreenCode Profiler dapat di-install langsung dari repositori GitHub resmi:  
-`https://github.com/Haekalss/GreenCode-Profiler.git`
+1. **🦀 Rust Native Engine — Zero-Cost Abstraction:**  
+   Seluruh core engine ditulis dalam Rust murni. Binary standalone ~4.5 MB, tidak membutuhkan Python, PHP, Node.js runtime, atau compiler C/GCC untuk berjalan.
 
-Pilih metode instalasi sesuai ekosistem bahasa dan project Anda:
+2. **⚡ Kebal Bias Jaringan (I/O Wait Isolation):**  
+   Hanya mengukur waktu CPU aktif murni ($t_{\text{user}} + t_{\text{system}}$) via kernel API (`GetProcessTimes` Windows / `/proc/PID/stat` Linux). Bebas dari bias latency database atau koneksi lambat yang mengacaukan alat konvensional seperti CodeCarbon.
 
-### 🟢 1. Node.js / Frontend (NPM)
+3. **📐 Built-in Static Code Quality Analyzer:**  
+   Menganalisis Cyclomatic Complexity (CCN), Maintainability Index (MI), NCLOC, dan mendeteksi arsitektur buruk (_God Class, Fat Controller, Deep Nesting_) tanpa perlu SonarQube atau Lizard.
 
-Cocok untuk project **Next.js, React, Express, atau CLI global**.
+4. **🗂️ Full-Stack Monorepo (FE + BE) Discovery:**  
+   Memindai workspace monorepo dengan folder Frontend (`Next.js / React`) dan Backend (`Laravel / Python / Go`) secara simultan, menemukan rute kedua sisi secara otomatis.
 
-**A. Install Global CLI (Rekomendasi - Bisa dipakai di semua folder):**
+5. **🔍 Automatic Route & Endpoint Discovery:**  
+   Mendeteksi otomatis rute dari Next.js App Router, Laravel `routes/api.php`, tanpa konfigurasi manual.
+
+6. **🌐 Language-Agnostic Profiling:**  
+   Bekerja dari luar proses target. Mendukung **Node.js (Next.js/Express), PHP (Laravel), Python (FastAPI/Django), dan Go (Gin/Fiber)** tanpa modifikasi kode aplikasi.
+
+7. **📄 Clean HTML Reports:**  
+   Laporan HTML profesional berlatar terang, siap cetak sebagai lampiran PDF/skripsi.
+
+---
+
+## 📦 Panduan Instalasi
+
+### ✅ Metode 1 — NPM Global (Rekomendasi)
+
+Install GreenCode sebagai CLI global via NPM. NPM hanya bertugas sebagai **launcher** — binary yang berjalan adalah Rust native (`.exe`/ELF), bukan Node.js.
 
 ```bash
 npm install -g --force git+https://github.com/Haekalss/GreenCode-Profiler.git
 ```
 
-_(Gunakan `--force` untuk memastikan NPM selalu mengambil versi dan commit terbaru dari GitHub)._
-
-**B. Install Lokal sebagai Dev Dependency di Project:**
+Verifikasi instalasi:
 
 ```bash
-npm install --save-dev git+https://github.com/Haekalss/GreenCode-Profiler.git
+greencode version
+# GreenCode Profiler v1.2.0 (Rust Native Architecture - Zero Cost Abstraction)
 ```
 
-Lalu jalankan via npx:
-
-```bash
-npx greencode routes
-npx greencode run
-```
+> **Catatan:** Perintah `greencode` di terminal diarahkan ke binary Rust `greencode.exe` secara langsung. Node.js tidak terlibat dalam proses profiling.
 
 ---
 
-### 🐍 2. Python (Pip)
+### 🦀 Metode 2 — Cargo (Untuk Developer Rust)
 
-Cocok untuk lingkungan **Python, FastAPI, Django, Flask, atau Data Science**.
-
-**Install / Upgrade dari GitHub:**
-
-```bash
-pip install --upgrade --force-reinstall git+https://github.com/Haekalss/GreenCode-Profiler.git
-```
-
-Setelah terinstall, perintah `greencode` langsung aktif di terminal:
-
-```bash
-greencode routes
-greencode run
-```
-
----
-
-### 🐘 3. PHP / Backend (Composer)
-
-Cocok untuk project **Laravel, Symfony, CodeIgniter, atau native PHP**.
-
-**Opsi A — Menggunakan Global CLI (Paling Mudah):**  
-Cukup install GreenCode secara global via NPM atau Pip di atas, lalu masuk ke folder project Laravel Anda dan langsung jalankan:
-
-```bash
-cd path/to/laravel-project
-greencode routes   # Otomatis deteksi routes/api.php & routes/web.php
-greencode run      # Jalankan profiling ke server php artisan serve
-```
-
-**Opsi B — Pasang ke `composer.json` Project:**  
-Tambahkan VCS repository ke `composer.json` project Anda:
-
-```json
-{
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/Haekalss/GreenCode-Profiler.git"
-    }
-  ],
-  "require-dev": {
-    "haekalss/greencode-profiler": "dev-main"
-  }
-}
-```
-
-Kemudian jalankan:
-
-```bash
-composer update haekalss/greencode-profiler
-```
-
-Binary runner tersedia di `vendor/bin/greencode` atau script wrapper `php bin/greencode.php run`.
-
----
-
-### 🐹 4. Go (Golang)
-
-Cocok untuk aplikasi berkinerja tinggi menggunakan **Gin, Fiber, Echo, atau Chi**.
-
-**A. Install Binary via `go install`:**
-
-```bash
-go install github.com/Haekalss/GreenCode-Profiler/cmd/greencode@latest
-```
-
-**B. Clone & Build Manual Executable:**
+Clone dan build dari source menggunakan Rust toolchain:
 
 ```bash
 git clone https://github.com/Haekalss/GreenCode-Profiler.git
 cd GreenCode-Profiler
-go build -o bin/greencode.exe cmd/greencode/main.go
+cargo build --release
+```
 
-# Jalankan binary hasil kompilasi:
-./bin/greencode.exe run
+Binary hasil build tersedia di:
+
+```
+target/release/greencode.exe   # Windows
+target/release/greencode       # Linux / macOS
+```
+
+Tambahkan ke PATH atau salin ke folder yang ada di PATH:
+
+```bash
+# Windows (PowerShell)
+Copy-Item target\release\greencode.exe $env:USERPROFILE\.cargo\bin\
+
+# Linux / macOS
+cp target/release/greencode ~/.cargo/bin/
+```
+
+---
+
+### 📥 Metode 3 — Download Binary Langsung (GitHub Releases)
+
+Tidak perlu Node.js, Rust, atau compiler apapun. Unduh binary standalone dari halaman [**Releases**](https://github.com/Haekalss/GreenCode-Profiler/releases):
+
+| Platform | File |
+|---|---|
+| Windows x64 | `greencode-windows-x64.exe` |
+| Linux x64 | `greencode-linux-x64` |
+| macOS arm64 | `greencode-macos-arm64` |
+
+Setelah diunduh, letakkan binary di folder yang ada di `PATH` sistem Anda, lalu jalankan langsung:
+
+```bash
+greencode version
 ```
 
 ---
 
 ## 🛠️ Perintah CLI Lengkap
 
-| Perintah                        | Deskripsi                                                                                                                        |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `greencode routes [dir]`        | **(Baru)** Deteksi otomatis rute dan endpoint nyata dari codebase project (Next.js, Laravel, dll)                                |
-| `greencode run [config.json]`   | Menjalankan analisis struktur kode + profiling energi runtime, dan menghasilkan laporan HTML                                     |
-| `greencode analyze [dir]`       | Menjalankan analisis kualitas struktur kode saja (CCN, LOC, MI, Smells) dan menghasilkan `reports/greencode_quality_report.html` |
-| `greencode detect`              | Memindai dan mendiagnosa proses server aktif (Node, PHP, Python, Go) beserta PID dan port-nya                                    |
-| `greencode init [--preset ...]` | Membuat template file konfigurasi `greencode.json` dengan rute yang otomatis terdeteksi                                          |
-| `greencode ui`                  | Membuka laporan HTML dashboard hasil profiling di browser                                                                        |
-| `greencode help [cmd]`          | Menampilkan panduan bantuan semua perintah atau perintah spesifik                                                                |
+| Perintah | Deskripsi |
+|---|---|
+| `greencode routes [dir]` | Deteksi otomatis rute dan endpoint dari codebase (Next.js, Laravel) |
+| `greencode run [config.json]` | Profiling energi runtime + analisis kualitas kode → laporan HTML |
+| `greencode analyze [dir]` | Analisis kualitas kode saja (CCN, LOC, MI, Smells) → `greencode_quality_report.html` |
+| `greencode detect` | Pindai proses server aktif (Node, PHP, Python, Go) beserta PID dan port |
+| `greencode init [--preset ...]` | Buat template konfigurasi `greencode.json` dengan rute terdeteksi otomatis |
+| `greencode ui` | Buka laporan HTML dashboard di browser |
+| `greencode version` | Tampilkan versi dan arsitektur engine |
+| `greencode help [cmd]` | Tampilkan bantuan semua perintah atau perintah spesifik |
 
 ---
 
 ## 🚀 Alur Penggunaan Standar
 
-1. **Pastikan server aplikasi Anda sudah berjalan** (misal: `npm run dev` pada port 3000 atau `php artisan serve` pada port 8000).
-2. **Masuk ke folder project Anda:**
+1. **Pastikan server aplikasi sudah berjalan** (misal: `npm run dev` port 3000, `php artisan serve` port 8000).
+2. **Masuk ke folder project:**
    ```bash
    cd path/to/project
    ```
-3. **Cek rute yang terdeteksi secara otomatis:**
+3. **Cek rute yang terdeteksi:**
    ```bash
    greencode routes
    ```
@@ -179,15 +139,14 @@ go build -o bin/greencode.exe cmd/greencode/main.go
    ```bash
    greencode init
    ```
-   _(File `greencode.json` akan dibuat otomatis terisi dengan rute-rute nyata yang ditemukan)_.
+   _(File `greencode.json` dibuat otomatis dengan rute-rute nyata)_
 5. **Jalankan Profiling:**
    ```bash
    greencode run
    ```
-6. **Buka Laporan:**  
-   Laporan HTML bersih dan siap cetak akan tersimpan di:
-   - `reports/greencode_report.html` (Hasil Profiling Energi + Kualitas Kode)
-   - `reports/greencode_quality_report.html` (Hasil Analisis Kualitas Kode)
+6. **Buka Laporan:**
+   - `reports/greencode_report.html` — Profiling Energi + Kualitas Kode
+   - `reports/greencode_quality_report.html` — Analisis Kualitas Kode saja
 
 ---
 
@@ -207,42 +166,59 @@ go build -o bin/greencode.exe cmd/greencode/main.go
   },
   "endpoints": [
     { "path": "/api/users", "name": "Get Users", "method": "GET" },
-    {
-      "path": "/api/reports/export",
-      "name": "Export Document",
-      "method": "GET"
-    }
+    { "path": "/api/reports/export", "name": "Export Document", "method": "GET" }
   ]
 }
 ```
 
-Template preset siap pakai tersedia di folder [`examples/`](examples/):
+Template preset tersedia di folder [`examples/`](examples/):
 
 - [`examples/php_laravel.json`](examples/php_laravel.json)
 - [`examples/node_nextjs.json`](examples/node_nextjs.json)
 - [`examples/python_fastapi.json`](examples/python_fastapi.json)
 - [`examples/go_fiber.json`](examples/go_fiber.json)
-- [`examples/enterprise_laravel.json`](examples/enterprise_laravel.json)
 
 ---
 
 ## 📊 Laporan Hasil Pengukuran (HTML Reports)
 
-GreenCode Profiler menghasilkan dua jenis laporan HTML berdesain bersih, terstruktur, dan siap cetak (_print-friendly_):
+GreenCode Profiler menghasilkan laporan HTML terstruktur dan siap cetak:
 
-### 1. `reports/greencode_report.html` (Hasil `greencode run`)
+### 1. `reports/greencode_report.html` (dari `greencode run`)
 
-- **Executive Summary Cards:** Total Energi (Joule), Konsumsi Listrik (kWh), Estimasi Emisi Karbon (gCO2e), CPU Active Time (detik), dan Rata-rata Skor Maintainability Index (Grade A/B/C/D).
-- **Tab 1 — Green-Architecture Scorecard:** Tabel analisis korelasi konsumsi Joule vs Cyclomatic Complexity (CCN) per-modul untuk mendeteksi _energy hotspot_.
-- **Tab 2 — Static Code Quality & Smells:** Ringkasan temuan fungsi terkompleks, Fat Controller, God Class, dan Deep Nesting.
-- **Tab 3 — Runtime Latency & Memory:** Tabel latensi detail per-run, RSS RAM (MB), dan HTTP status code.
-- **Tab 4 — Refactoring Action Plan:** Panduan rekomendasi langkah refactoring berbasis arsitektur hijau.
+- **Executive Summary Cards:** Total Energi (Joule), Konsumsi Listrik (kWh), Estimasi Emisi Karbon (gCO2e), CPU Active Time (detik), Rata-rata Maintainability Index (Grade A/B/C/D).
+- **Tab 1 — Green-Architecture Scorecard:** Korelasi konsumsi Joule vs CCN per-modul untuk mendeteksi _energy hotspot_.
+- **Tab 2 — Static Code Quality & Smells:** Fungsi terkompleks, Fat Controller, God Class, Deep Nesting.
+- **Tab 3 — Runtime Latency & Memory:** Latensi per-run, RSS RAM (MB), HTTP status code.
+- **Tab 4 — Refactoring Action Plan:** Rekomendasi refactoring berbasis _green architecture_.
 
-### 2. `reports/greencode_quality_report.html` (Hasil `greencode analyze`)
+### 2. `reports/greencode_quality_report.html` (dari `greencode analyze`)
 
-- Analisis struktur kode statis independen dengan skor CCN rata-rata & maksimum.
-- Tabel rincian kompleksitas seluruh fungsi dan kelas di seluruh codebase.
-- Deteksi pelanggaran arsitektur (_Architectural Smells_) yang dapat diekspor langsung ke dokumen skripsi/teknis.
+- Analisis statis dengan skor CCN rata-rata & maksimum.
+- Tabel rincian kompleksitas seluruh fungsi/kelas di seluruh codebase.
+- Deteksi pelanggaran arsitektur (_Architectural Smells_) siap ekspor ke dokumen teknis/skripsi.
+
+---
+
+## 🏗️ Arsitektur Internal (v1.2.0)
+
+```
+GreenCode Profiler v1.2.0
+├── src/
+│   ├── main.rs        — CLI entrypoint (init/routes/detect/analyze/run/ui/version)
+│   ├── engine.rs      — ProcessEnergyEngine (kernel CPU times, Windows FFI / Linux proc)
+│   ├── detector.rs    — RuntimeDetector (PID via netstat) & RouteDiscoverer
+│   ├── analyzer.rs    — CodeQualityAnalyzer (NCLOC, CCN, MI, Code Smells)
+│   ├── attributor.rs  — ModuleAttributor + HTTP tracer native via TcpStream
+│   ├── correlator.rs  — GreenCorrelator (korelasi metrik energi & kualitas kode)
+│   └── reporter.rs    — HTML & JSON report generator
+├── bin/
+│   ├── greencode.js   — NPM launcher (menjalankan Rust binary langsung)
+│   └── greencode.exe  — Rust binary untuk distribusi NPM (Windows)
+└── Cargo.toml         — Dependencies: serde, serde_json, regex (pure-Rust only)
+```
+
+**Zero external C dependencies.** Tidak ada `gcc`, `dlltool`, `OpenSSL`, atau `ring`.
 
 ---
 
