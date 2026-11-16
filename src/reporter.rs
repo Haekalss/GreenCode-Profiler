@@ -28,7 +28,8 @@ impl ReportGenerator {
         let totals = &report_data["totals"];
         let correlated = report_data["correlated_modules"].as_array();
         let endpoints = report_data["endpoints_detail"].as_array();
-        let quality = &report_data["code_quality"]["overview"];
+        let code_quality = &report_data["code_quality"];
+        let quality = &code_quality["overview"];
 
         let total_joules = totals["total_joules"].as_f64().unwrap_or(0.0);
         let total_kwh = totals["total_kwh"].as_f64().unwrap_or(0.0);
@@ -87,6 +88,55 @@ impl ReportGenerator {
             }
         }
 
+        let smells = code_quality["code_smells"].as_array();
+        let mut rows_smells = String::new();
+        if let Some(list) = smells {
+            for s in list.iter().take(15) {
+                let badge_color = match s["severity"].as_str().unwrap_or("") {
+                    "High" => "#ef4444",
+                    "Medium" => "#f59e0b",
+                    _ => "#3b82f6",
+                };
+                rows_smells.push_str(&format!(
+                    r#"<tr>
+                        <td style="text-align:center;"><span style="background:{};color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;">{}</span></td>
+                        <td style="font-weight:600;">{}</td>
+                        <td>{}</td>
+                        <td style="font-family:monospace;font-size:12px;">{}:{}</td>
+                    </tr>"#,
+                    badge_color,
+                    s["severity"].as_str().unwrap_or(""),
+                    s["smell_type"].as_str().unwrap_or(""),
+                    s["message"].as_str().unwrap_or(""),
+                    s["file"].as_str().unwrap_or(""),
+                    s["line"]
+                ));
+            }
+        }
+
+        let files = code_quality["files"].as_array();
+        let mut rows_files = String::new();
+        if let Some(list) = files {
+            for f in list.iter().take(20) {
+                rows_files.push_str(&format!(
+                    r#"<tr>
+                        <td style="font-family:monospace;font-size:12px;">{}</td>
+                        <td style="text-align:center;"><span style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">{}</span></td>
+                        <td style="text-align:right;">{}</td>
+                        <td style="text-align:right;font-weight:600;">{}</td>
+                        <td style="text-align:right;font-weight:bold;color:#059669;">{:.1}</td>
+                        <td style="text-align:center;">{}</td>
+                    </tr>"#,
+                    f["file_path"].as_str().unwrap_or(""),
+                    f["language"].as_str().unwrap_or(""),
+                    f["ncloc"],
+                    f["ccn"],
+                    f["maintainability_index"].as_f64().unwrap_or(0.0),
+                    f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0)
+                ));
+            }
+        }
+
         let html = format!(
             r##"<!DOCTYPE html>
 <html lang="id">
@@ -108,6 +158,7 @@ impl ReportGenerator {
         th {{ background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; }}
         tr:nth-child(even) {{ background: #f8fafc; }}
         .section-title {{ font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 35px; margin-bottom: 15px; border-left: 4px solid #10b981; padding-left: 10px; }}
+        .section-title.blue {{ border-left-color: #3b82f6; }}
         .desc-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 18px 22px; margin-bottom: 30px; line-height: 1.6; font-size: 14px; color: #166534; }}
         .desc-box h3 {{ margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #14532d; }}
         .desc-box ul {{ margin: 0; padding-left: 20px; }}
@@ -163,7 +214,7 @@ impl ReportGenerator {
             </ul>
         </div>
 
-        <div class="section-title">Ringkasan Efisiensi Energi per Modul</div>
+        <div class="section-title">1. Ringkasan Efisiensi Energi per Modul</div>
         <table>
             <thead>
                 <tr>
@@ -180,7 +231,7 @@ impl ReportGenerator {
             </tbody>
         </table>
 
-        <div class="section-title">Detail Pengukuran Transaksi HTTP</div>
+        <div class="section-title">2. Detail Pengukuran Transaksi HTTP</div>
         <table>
             <thead>
                 <tr>
@@ -191,6 +242,58 @@ impl ReportGenerator {
                     <th style="text-align:right;">Latensi</th>
                     <th style="text-align:right;">CPU Aktif</th>
                     <th style="text-align:right;">Energi Bersih</th>
+                </tr>
+            </thead>
+            <tbody>
+                {}
+            </tbody>
+        </table>
+
+        <div class="section-title blue">3. Ringkasan Kualitas Kode & Arsitektur Statis</div>
+        <div class="grid" style="margin-top: 15px;">
+            <div class="card">
+                <div class="lbl">Total File Discan</div>
+                <div class="val">{}</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Total NCLOC</div>
+                <div class="val">{}</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Rata-rata CCN</div>
+                <div class="val">{}</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Code Smells Terdeteksi</div>
+                <div class="val" style="color:#ef4444;">{}</div>
+            </div>
+        </div>
+
+        <div class="section-title blue">4. Temuan Code Smells & Arsitektur Buruk</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align:center;">Severity</th>
+                    <th>Tipe Masalah</th>
+                    <th>Deskripsi</th>
+                    <th>Lokasi Berkas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {}
+            </tbody>
+        </table>
+
+        <div class="section-title blue">5. Sample Metrik per Berkas Kode</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama Berkas</th>
+                    <th style="text-align:center;">Bahasa</th>
+                    <th style="text-align:right;">NCLOC</th>
+                    <th style="text-align:right;">CCN</th>
+                    <th style="text-align:right;">MI (0-100)</th>
+                    <th style="text-align:center;">Smells</th>
                 </tr>
             </thead>
             <tbody>
@@ -214,7 +317,13 @@ impl ReportGenerator {
             quality["average_maintainability_index"],
             quality["maintainability_grade"].as_str().unwrap_or("Grade A"),
             rows_corr,
-            rows_ep
+            rows_ep,
+            quality["total_files"],
+            quality["total_ncloc"].as_u64().unwrap_or(0),
+            quality["average_ccn_per_file"],
+            quality["total_code_smells"],
+            rows_smells,
+            rows_files
         );
 
         fs::write(p, html)
