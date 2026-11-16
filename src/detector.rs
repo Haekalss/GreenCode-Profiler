@@ -57,26 +57,15 @@ impl RuntimeDetector {
                 if !path.is_dir() {
                     continue;
                 }
-                let dirname = entry.file_name().to_string_lossy().to_string();
-                if ignore.contains(&dirname.as_str()) || dirname.starts_with('.') {
+
+                let dirname = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                if ignore.contains(&dirname.as_str()) {
                     continue;
                 }
 
-                let sub_files: Vec<String> = fs::read_dir(&path)
-                    .map(|d| {
-                        d.flatten()
-                            .filter(|e| e.path().is_file())
-                            .map(|e| e.file_name().to_string_lossy().to_lowercase())
-                            .collect()
-                    })
-                    .unwrap_or_default();
-
-                // 1. Cek PHP / Laravel Backend
-                if sub_files.contains(&"composer.json".to_string())
-                    || sub_files.contains(&"artisan".to_string())
-                {
-                    let has_app = path.join("app").exists();
-                    let src = if has_app {
+                // 1. Cek Backend (Laravel / PHP / Python / Go)
+                if path.join("artisan").exists() || path.join("composer.json").exists() {
+                    let src = if path.join("app").exists() {
                         format!("{}/app", dirname)
                     } else {
                         dirname.clone()
@@ -89,20 +78,28 @@ impl RuntimeDetector {
                         default_port: 8000,
                         base_url: "http://127.0.0.1:8000".to_string(),
                     });
+                } else if path.join("go.mod").exists() {
+                    backend_info = Some(ComponentInfo {
+                        language: "go".to_string(),
+                        framework: "go".to_string(),
+                        dir: dirname.clone(),
+                        source_dir: dirname.clone(),
+                        default_port: 8080,
+                        base_url: "http://127.0.0.1:8080".to_string(),
+                    });
                 }
-                // 2. Cek Node.js / Next.js / Frontend
-                else if sub_files.contains(&"package.json".to_string()) {
+
+                // 2. Cek Frontend (Next.js / React)
+                if path.join("package.json").exists() {
                     let has_next = path.join("next.config.js").exists()
                         || path.join("next.config.mjs").exists()
                         || path.join("next.config.ts").exists()
+                        || path.join(".next").exists()
                         || path.join("src").join("app").exists()
-                        || path.join("app").exists()
-                        || dirname.to_lowercase().contains("fe")
-                        || dirname.to_lowercase().contains("front");
+                        || path.join("app").exists();
 
                     if has_next {
-                        let has_src = path.join("src").exists();
-                        let src = if has_src {
+                        let src = if path.join("src").exists() {
                             format!("{}/src", dirname)
                         } else {
                             dirname.clone()
@@ -230,7 +227,7 @@ impl RouteDiscoverer {
             let fe_dir = p.join(&fe.dir);
             let be_dir = p.join(&be.dir);
 
-            // 1. Frontend routes (Next.js)
+            // 1. Frontend routes (Next.js) - abaikan route parameter mentah [id], [rfc] agar tidak 404
             let fe_routes = Self::discover_nextjs(&fe_dir);
             let limit_fe = max_routes / 2;
             for r in fe_routes.into_iter().take(limit_fe) {
@@ -244,7 +241,7 @@ impl RouteDiscoverer {
                 });
             }
 
-            // 2. Backend routes (Laravel)
+            // 2. Backend routes (Laravel) - hanya GET dan abaikan placeholder parameter {id}
             let be_routes = Self::discover_laravel(&be_dir);
             let limit_be = max_routes.saturating_sub(routes.len());
             for r in be_routes.into_iter().take(limit_be) {
@@ -317,6 +314,11 @@ impl RouteDiscoverer {
                         format!("/{}", segs.join("/"))
                     };
 
+                    // Filter rute dinamis seperti /[rfc], /[id], /ticket/[rfc] agar tidak otomatis ditembak dan menghasilkan HTTP 404
+                    if clean_path.contains('[') || clean_path.contains(']') {
+                        continue;
+                    }
+
                     let name = if clean_path == "/" {
                         "Halaman Utama".to_string()
                     } else {
@@ -358,11 +360,21 @@ impl RouteDiscoverer {
                     path = format!("/api{}", path);
                 }
 
+                // Untuk profiling otomatis tanpa payload body, utamakan metode GET dan abaikan rute dinamis {id}
+                if method != "GET" {
+                    continue;
+                }
+
                 if !path.contains('{') && !routes.iter().any(|r: &RouteEndpoint| r.path == path) {
                     let name = path
                         .trim_start_matches("/api/")
                         .replace('/', " ")
                         .replace('-', " ");
+                    
+                    if name.trim().is_empty() {
+                        continue;
+                    }
+
                     routes.push(RouteEndpoint {
                         path,
                         name: format!("API {}", name),
@@ -378,14 +390,17 @@ impl RouteDiscoverer {
     }
 }
 
-pub fn collect_files_recursive(dir: &Path, files: &mut Vec<PathBuf>) {
+fn collect_files_recursive(dir: &Path, files: &mut Vec<PathBuf>) {
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
-            let p = entry.path();
-            if p.is_dir() {
-                collect_files_recursive(&p, files);
-            } else if p.is_file() {
-                files.push(p);
+            let path = entry.path();
+            if path.is_dir() {
+                let name = path.file_name().unwrap_or_default().to_string_lossy();
+                if name != "node_modules" && name != ".next" && name != ".git" {
+                    collect_files_recursive(&path, files);
+                }
+            } else {
+                files.push(path);
             }
         }
     }
