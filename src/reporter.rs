@@ -8,6 +8,8 @@ use std::process::Command;
 
 pub struct ReportGenerator;
 
+pub const LOGO_BASE64: &str = include_str!("logo_base64.txt");
+
 impl ReportGenerator {
     pub fn save_json<P: AsRef<Path>>(data: &Value, path: P) -> std::io::Result<()> {
         let p = path.as_ref();
@@ -211,6 +213,8 @@ impl ReportGenerator {
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }}
         .container {{ max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 40px; border: 1px solid #e2e8f0; }}
         .header {{ display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; }}
+        .header-brand {{ display: flex; align-items: center; gap: 18px; }}
+        .logo-img {{ width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }}
         .badge {{ background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }}
         .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 35px; }}
         .card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }}
@@ -235,9 +239,12 @@ impl ReportGenerator {
 <body>
     <div class="container">
         <div class="header">
-            <div>
-                <h1 style="margin:0;font-size:24px;color:#0f172a;">GreenCode Profiler Report</h1>
-                <p style="margin:5px 0 0 0;color:#64748b;">Project: <strong>{}</strong> | Engine: <strong>Rust Native Profiler v1.2.0</strong></p>
+            <div class="header-brand">
+                <img src="data:image/png;base64,{}" class="logo-img" alt="GreenCode Logo" />
+                <div>
+                    <h1 style="margin:0;font-size:24px;color:#0f172a;">GreenCode Profiler Report</h1>
+                    <p style="margin:5px 0 0 0;color:#64748b;">Project: <strong>{}</strong> | Engine: <strong>Rust Native Profiler v1.2.0</strong></p>
+                </div>
             </div>
             <div>
                 <span class="badge">GREEN AUDIT VERIFIED</span>
@@ -390,6 +397,7 @@ impl ReportGenerator {
     </div>
 </body>
 </html>"##,
+            LOGO_BASE64,
             meta["project_name"].as_str().unwrap_or("Web Project"),
             meta["timestamp"].as_str().unwrap_or(""),
             total_joules,
@@ -502,6 +510,9 @@ impl ReportGenerator {
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }}
         .container {{ max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }}
+        .header {{ display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px; }}
+        .header-brand {{ display: flex; align-items: center; gap: 18px; }}
+        .logo-img {{ width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }}
         .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 25px 0; }}
         .card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }}
         .card .val {{ font-size: 26px; font-weight: 700; color: #0f172a; margin-top: 6px; }}
@@ -521,8 +532,18 @@ impl ReportGenerator {
 </head>
 <body>
     <div class="container">
-        <h1 style="margin:0;font-size:24px;">Static Code Quality & Architecture Report</h1>
-        <p style="color:#64748b;margin-top:4px;">Dianalisis menggunakan GreenCode Static Analyzer (Rust Native Engine)</p>
+        <div class="header">
+            <div class="header-brand">
+                <img src="data:image/png;base64,{}" class="logo-img" alt="GreenCode Logo" />
+                <div>
+                    <h1 style="margin:0;font-size:24px;color:#0f172a;">Static Code Quality & Architecture Report</h1>
+                    <p style="margin:5px 0 0 0;color:#64748b;">Dianalisis menggunakan GreenCode Static Analyzer (Rust Native Engine)</p>
+                </div>
+            </div>
+            <div>
+                <span style="background:#3b82f6;color:white;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">STATIC AUDIT</span>
+            </div>
+        </div>
 
         <div class="grid">
             <div class="card">
@@ -600,6 +621,7 @@ impl ReportGenerator {
     </div>
 </body>
 </html>"##,
+            LOGO_BASE64,
             ov["total_files"],
             ov["total_ncloc"].as_u64().unwrap_or(0),
             ov["average_ccn_per_file"],
