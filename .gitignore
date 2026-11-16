@@ -33,7 +33,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Go
-bin/*.exe
+!bin/greencode.exe
 bin/greencode
 *.test
 *.prof
