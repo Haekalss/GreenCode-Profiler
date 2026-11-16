@@ -45,21 +45,42 @@ impl ReportGenerator {
         let mut rows_corr = String::new();
         if let Some(list) = correlated {
             for m in list {
+                let energy = m["total_energy_joules"].as_f64().unwrap_or(0.0);
+                let score = m["green_efficiency_score"].as_f64().unwrap_or(0.0);
+
+                // Pewarnaan dinamis untuk Energi (Joule)
+                let energy_badge = if energy > 10.0 {
+                    format!(r#"<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:6px;font-weight:700;">{:.3} J (Tinggi)</span>"#, energy)
+                } else if energy > 2.0 {
+                    format!(r#"<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:6px;font-weight:600;">{:.3} J (Sedang)</span>"#, energy)
+                } else {
+                    format!(r#"<span style="background:#ecfdf5;color:#065f46;padding:3px 8px;border-radius:6px;font-weight:600;">{:.3} J (Efisien)</span>"#, energy)
+                };
+
+                // Pewarnaan dinamis untuk Green Score
+                let score_badge = if score >= 85.0 {
+                    format!(r#"<span style="background:#ecfdf5;color:#065f46;padding:3px 8px;border-radius:12px;font-weight:bold;">{:.1} (Optimal)</span>"#, score)
+                } else if score >= 60.0 {
+                    format!(r#"<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:12px;font-weight:bold;">{:.1} (Cukup)</span>"#, score)
+                } else {
+                    format!(r#"<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:12px;font-weight:bold;">{:.1} (Boros)</span>"#, score)
+                };
+
                 rows_corr.push_str(&format!(
                     r#"<tr>
                         <td style="font-family:monospace;font-size:13px;">{}</td>
                         <td style="text-align:center;">{}</td>
                         <td style="text-align:right;">{:.2} ms</td>
-                        <td style="text-align:right;font-weight:600;color:#059669;">{:.4} J</td>
+                        <td style="text-align:right;">{}</td>
                         <td style="text-align:right;">{:.3} s</td>
-                        <td style="text-align:center;"><span style="background:#ecfdf5;color:#065f46;padding:3px 8px;border-radius:12px;font-weight:bold;">{:.1}</span></td>
+                        <td style="text-align:center;">{}</td>
                     </tr>"#,
                     m["module_name"].as_str().unwrap_or(""),
                     m["total_calls"],
                     m["avg_latency_ms"].as_f64().unwrap_or(0.0),
-                    m["total_energy_joules"].as_f64().unwrap_or(0.0),
+                    energy_badge,
                     m["avg_cpu_active_s"].as_f64().unwrap_or(0.0),
-                    m["green_efficiency_score"].as_f64().unwrap_or(0.0)
+                    score_badge
                 ));
             }
         }
@@ -67,23 +88,40 @@ impl ReportGenerator {
         let mut rows_ep = String::new();
         if let Some(list) = endpoints {
             for (i, ep) in list.iter().enumerate() {
+                let status = ep["status"].as_u64().unwrap_or(0);
+                let status_badge = if status == 200 {
+                    format!(r#"<span style="background:#ecfdf5;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:bold;">{}</span>"#, status)
+                } else {
+                    format!(r#"<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:bold;">{}</span>"#, status)
+                };
+
+                let ep_energy = ep["energy_total_joules"].as_f64().unwrap_or(0.0);
+                let ep_energy_color = if ep_energy > 5.0 {
+                    "#dc2626"
+                } else if ep_energy > 1.0 {
+                    "#d97706"
+                } else {
+                    "#059669"
+                };
+
                 rows_ep.push_str(&format!(
                     r#"<tr>
                         <td style="text-align:center;">{}</td>
                         <td style="font-weight:600;color:#2563eb;">{}</td>
                         <td style="font-family:monospace;font-size:12px;">{}</td>
-                        <td style="text-align:center;"><span style="background:#eff6ff;color:#1e40af;padding:2px 6px;border-radius:4px;font-weight:bold;">{}</span></td>
+                        <td style="text-align:center;">{}</td>
                         <td style="text-align:right;">{:.2} ms</td>
                         <td style="text-align:right;">{:.3} s</td>
-                        <td style="text-align:right;font-weight:600;color:#059669;">{:.4} J</td>
+                        <td style="text-align:right;font-weight:600;color:{};">{:.4} J</td>
                     </tr>"#,
                     i + 1,
                     ep["method"].as_str().unwrap_or("GET"),
                     ep["endpoint"].as_str().unwrap_or(""),
-                    ep["status"],
+                    status_badge,
                     ep["latency_ms"].as_f64().unwrap_or(0.0),
                     ep["cpu_active_time_s"].as_f64().unwrap_or(0.0),
-                    ep["energy_total_joules"].as_f64().unwrap_or(0.0)
+                    ep_energy_color,
+                    ep_energy
                 ));
             }
         }
@@ -91,7 +129,7 @@ impl ReportGenerator {
         let smells = code_quality["code_smells"].as_array();
         let mut rows_smells = String::new();
         if let Some(list) = smells {
-            for s in list.iter().take(15) {
+            for s in list.iter().take(20) {
                 let badge_color = match s["severity"].as_str().unwrap_or("") {
                     "High" => "#ef4444",
                     "Medium" => "#f59e0b",
@@ -117,22 +155,47 @@ impl ReportGenerator {
         let files = code_quality["files"].as_array();
         let mut rows_files = String::new();
         if let Some(list) = files {
-            for f in list.iter().take(20) {
+            for f in list.iter().take(25) {
+                let ccn = f["ccn"].as_u64().unwrap_or(0);
+                let ccn_badge = if ccn > 20 {
+                    format!(r#"<span style="color:#dc2626;font-weight:bold;">{} (Tinggi)</span>"#, ccn)
+                } else if ccn > 10 {
+                    format!(r#"<span style="color:#d97706;font-weight:600;">{} (Sedang)</span>"#, ccn)
+                } else {
+                    format!(r#"<span style="color:#059669;">{} (Aman)</span>"#, ccn)
+                };
+
+                let mi = f["maintainability_index"].as_f64().unwrap_or(0.0);
+                let mi_badge = if mi >= 85.0 {
+                    format!(r#"<span style="color:#059669;font-weight:bold;">{:.1} (A)</span>"#, mi)
+                } else if mi >= 65.0 {
+                    format!(r#"<span style="color:#d97706;font-weight:bold;">{:.1} (B)</span>"#, mi)
+                } else {
+                    format!(r#"<span style="color:#dc2626;font-weight:bold;">{:.1} (C)</span>"#, mi)
+                };
+
+                let smell_count = f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0);
+                let smell_badge = if smell_count > 0 {
+                    format!(r#"<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:bold;">{}</span>"#, smell_count)
+                } else {
+                    r#"<span style="color:#94a3b8;">0</span>"#.to_string()
+                };
+
                 rows_files.push_str(&format!(
                     r#"<tr>
                         <td style="font-family:monospace;font-size:12px;">{}</td>
                         <td style="text-align:center;"><span style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">{}</span></td>
                         <td style="text-align:right;">{}</td>
-                        <td style="text-align:right;font-weight:600;">{}</td>
-                        <td style="text-align:right;font-weight:bold;color:#059669;">{:.1}</td>
+                        <td style="text-align:right;">{}</td>
+                        <td style="text-align:right;">{}</td>
                         <td style="text-align:center;">{}</td>
                     </tr>"#,
                     f["file_path"].as_str().unwrap_or(""),
                     f["language"].as_str().unwrap_or(""),
                     f["ncloc"],
-                    f["ccn"],
-                    f["maintainability_index"].as_f64().unwrap_or(0.0),
-                    f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0)
+                    ccn_badge,
+                    mi_badge,
+                    smell_badge
                 ));
             }
         }
@@ -160,9 +223,11 @@ impl ReportGenerator {
         .section-title {{ font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 35px; margin-bottom: 15px; border-left: 4px solid #10b981; padding-left: 10px; }}
         .section-title.blue {{ border-left-color: #3b82f6; }}
         .desc-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 18px 22px; margin-bottom: 30px; line-height: 1.6; font-size: 14px; color: #166534; }}
+        .desc-box.blue {{ background: #eff6ff; border-color: #bfdbfe; color: #1e40af; margin-top: 15px; }}
         .desc-box h3 {{ margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #14532d; }}
+        .desc-box.blue h3 {{ color: #1e3a8a; }}
         .desc-box ul {{ margin: 0; padding-left: 20px; }}
-        .desc-box li {{ margin-bottom: 6px; }}
+        .desc-box li {{ margin-bottom: 8px; }}
         .desc-box strong {{ color: #0f172a; }}
         .footer {{ margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }}
     </style>
@@ -204,13 +269,16 @@ impl ReportGenerator {
         </div>
 
         <div class="desc-box">
-            <h3>📖 Penjelasan Parameter & Metrik GreenCode Profiler</h3>
+            <h3>📖 Panduan & Penjelasan Parameter Profiling Energi Dinamis</h3>
             <ul>
-                <li><strong>Total Energi Murni (Joule & kWh):</strong> Total konsumsi daya listrik murni yang ditarik oleh instruksi CPU selama server memproses transaksi. Dihitung dengan rumus <code>E = P_avg × t_active</code>, di mana <code>t_active = t_user + t_system</code> langsung dari kernel OS.</li>
-                <li><strong>Waktu Aktif CPU Murni (Detik):</strong> Durasi aktual thread CPU bekerja mengeksekusi kode aplikasi. Berbeda dengan latensi jaringan/wall-clock time, parameter ini <em>kebal terhadap keterlambatan network I/O, waiting query database, atau koneksi lambat</em>.</li>
-                <li><strong>Jejak Karbon Bersih (gCO2e):</strong> Estimasi emisi gas rumah kaca hasil konversi energi komputasi listrik dengan faktor emisi pembangkit listrik rata-rata Indonesia (Grid Emission Factor ~850 gCO2e/kWh).</li>
-                <li><strong>Maintainability Index (MI):</strong> Skor kemampuan pemeliharaan kode (skala 0–100) berdasarkan kombinasi Cyclomatic Complexity, Volume Halstead, dan NCLOC. Skor &gt; 85: Grade A (Sangat Mudah Dirawat), 65–84: Grade B, &lt; 65: Grade C (Rawan Debt & Bug).</li>
-                <li><strong>Green Score (Efisiensi):</strong> Indeks efisiensi rasio konsumsi energi terhadap throughput dan kompleksitas modul kode.</li>
+                <li><strong>Total Energi Murni (Joule & kWh):</strong> Total daya listrik aktual yang ditarik CPU selama memproses transaksi ($E = P_{{avg}} \times t_{{active}}$). 
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🔴 <em>Merah (&gt; 10 J): Konsumsi tinggi / berisiko hotspot</em> | 🟡 <em>Kuning (2 - 10 J): Konsumsi moderat</em> | 🟢 <em>Hijau (&lt; 2 J): Sangat efisien</em></span>
+                </li>
+                <li><strong>Waktu Aktif CPU Murni (Detik):</strong> Durasi thread CPU aktif mengeksekusi instruksi kode program ($t_{{user}} + t_{{system}}$ dari kernel). <strong>Kebal terhadap keterlambatan network I/O, waiting query database, atau koneksi lambat</strong>.</li>
+                <li><strong>Jejak Karbon Bersih (gCO2e):</strong> Estimasi emisi gas rumah kaca berbasis faktor emisi pembangkit listrik Indonesia (~850 gCO2e/kWh).</li>
+                <li><strong>Green Score (0 - 100):</strong> Indeks rasio efisiensi energi terhadap latensi dan throughput endpoint.
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>Hijau (≥ 85): Optimal</em> | 🟡 <em>Kuning (60 - 84): Cukup</em> | 🔴 <em>Merah (&lt; 60): Boros energi (perlu refactoring)</em></span>
+                </li>
             </ul>
         </div>
 
@@ -269,6 +337,20 @@ impl ReportGenerator {
             </div>
         </div>
 
+        <div class="desc-box blue">
+            <h3>📐 Panduan & Penjelasan Parameter Kualitas Struktur Kode</h3>
+            <ul>
+                <li><strong>NCLOC (Non-Comment Lines of Code):</strong> Jumlah baris instruksi logika program yang dieksekusi tanpa menghitung baris kosong dan komentar. Semakin proporsional NCLOC per berkas (&lt; 300 baris), semakin mudah dirawat.</li>
+                <li><strong>CCN (Cyclomatic Complexity Number):</strong> Jumlah jalur percabangan independen (if/else/switch/loop) dalam logika fungsi. 
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>1 - 10: Rendah & Aman</em> | 🟡 <em>11 - 20: Sedang (rawan bug)</em> | 🔴 <em>&gt; 20: Tinggi & Kompleks (wajib modularisasi)</em></span>
+                </li>
+                <li><strong>MI (Maintainability Index, Skala 0 - 100):</strong> Indeks komprehensif kemudahan pemeliharaan kode berbasis perpaduan logaritma Halstead Volume, CCN, dan NCLOC.
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>Grade A (≥ 85): Bersih & Sangat Mudah Dipelihara</em> | 🟡 <em>Grade B (65 - 84): Cukup</em> | 🔴 <em>Grade C (&lt; 65): Technical Debt Tinggi</em></span>
+                </li>
+                <li><strong>Smells (Code Smells):</strong> Deteksi gejala arsitektur buruk: <em>God Class</em> (kelas terlalu besar), <em>Fat Controller</em> (logika bertumpuk di controller), dan <em>Deep Nesting</em> (percabangan bersarang &gt; 4 level).</li>
+            </ul>
+        </div>
+
         <div class="section-title blue">4. Temuan Code Smells & Arsitektur Buruk</div>
         <table>
             <thead>
@@ -291,7 +373,7 @@ impl ReportGenerator {
                     <th>Nama Berkas</th>
                     <th style="text-align:center;">Bahasa</th>
                     <th style="text-align:right;">NCLOC</th>
-                    <th style="text-align:right;">CCN</th>
+                    <th style="text-align:right;">CCN (Kompleksitas)</th>
                     <th style="text-align:right;">MI (0-100)</th>
                     <th style="text-align:center;">Smells</th>
                 </tr>
@@ -342,21 +424,46 @@ impl ReportGenerator {
         let mut rows_files = String::new();
         if let Some(list) = files {
             for f in list {
+                let ccn = f["ccn"].as_u64().unwrap_or(0);
+                let ccn_badge = if ccn > 20 {
+                    format!(r#"<span style="color:#dc2626;font-weight:bold;">{} (Tinggi)</span>"#, ccn)
+                } else if ccn > 10 {
+                    format!(r#"<span style="color:#d97706;font-weight:600;">{} (Sedang)</span>"#, ccn)
+                } else {
+                    format!(r#"<span style="color:#059669;">{} (Aman)</span>"#, ccn)
+                };
+
+                let mi = f["maintainability_index"].as_f64().unwrap_or(0.0);
+                let mi_badge = if mi >= 85.0 {
+                    format!(r#"<span style="color:#059669;font-weight:bold;">{:.1} (A)</span>"#, mi)
+                } else if mi >= 65.0 {
+                    format!(r#"<span style="color:#d97706;font-weight:bold;">{:.1} (B)</span>"#, mi)
+                } else {
+                    format!(r#"<span style="color:#dc2626;font-weight:bold;">{:.1} (C)</span>"#, mi)
+                };
+
+                let smell_count = f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0);
+                let smell_badge = if smell_count > 0 {
+                    format!(r#"<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:bold;">{}</span>"#, smell_count)
+                } else {
+                    r#"<span style="color:#94a3b8;">0</span>"#.to_string()
+                };
+
                 rows_files.push_str(&format!(
                     r#"<tr>
                         <td style="font-family:monospace;font-size:12px;">{}</td>
                         <td style="text-align:center;"><span style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">{}</span></td>
                         <td style="text-align:right;">{}</td>
-                        <td style="text-align:right;font-weight:600;">{}</td>
-                        <td style="text-align:right;font-weight:bold;color:#059669;">{:.1}</td>
+                        <td style="text-align:right;">{}</td>
+                        <td style="text-align:right;">{}</td>
                         <td style="text-align:center;">{}</td>
                     </tr>"#,
                     f["file_path"].as_str().unwrap_or(""),
                     f["language"].as_str().unwrap_or(""),
                     f["ncloc"],
-                    f["ccn"],
-                    f["maintainability_index"].as_f64().unwrap_or(0.0),
-                    f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0)
+                    ccn_badge,
+                    mi_badge,
+                    smell_badge
                 ));
             }
         }
@@ -407,7 +514,7 @@ impl ReportGenerator {
         .desc-box {{ background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 18px 22px; margin-bottom: 25px; line-height: 1.6; font-size: 14px; color: #1e40af; }}
         .desc-box h3 {{ margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #1e3a8a; }}
         .desc-box ul {{ margin: 0; padding-left: 20px; }}
-        .desc-box li {{ margin-bottom: 6px; }}
+        .desc-box li {{ margin-bottom: 8px; }}
         .desc-box strong {{ color: #0f172a; }}
         .footer {{ margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }}
     </style>
@@ -442,12 +549,16 @@ impl ReportGenerator {
         </div>
 
         <div class="desc-box">
-            <h3>📐 Penjelasan Metrik Kualitas Kode</h3>
+            <h3>📐 Panduan & Penjelasan Parameter Kualitas Struktur Kode</h3>
             <ul>
-                <li><strong>NCLOC (Non-Comment Lines of Code):</strong> Jumlah baris instruksi logika aktual yang dieksekusi, tanpa menghitung baris kosong dan baris komentar dokumentasi.</li>
-                <li><strong>Cyclomatic Complexity (CCN):</strong> Ukuran kuantitatif jumlah jalur percabangan independen (if/else/switch/loop) dalam program. Standar: 1–10 (Aman/Rendah), 11–20 (Sedang), &gt; 20 (Kompleks & Berisiko).</li>
-                <li><strong>Maintainability Index (MI):</strong> Skor kemampuan kode untuk dipelihara dan dipahami oleh developer lain berdasarkan perpaduan metrik kompleksitas, volume, dan baris kode.</li>
-                <li><strong>Code Smells:</strong> Indikator gejala buruk pada struktur kode, seperti <em>God Class</em> (kelas terlalu besar), <em>Fat Controller</em> (logika bisnis menumpuk di kontroler), dan <em>Deep Nesting</em> (percabangan bersarang &gt; 4 level).</li>
+                <li><strong>NCLOC (Non-Comment Lines of Code):</strong> Jumlah baris instruksi logika program yang dieksekusi tanpa menghitung baris kosong dan komentar. Semakin proporsional NCLOC per berkas (&lt; 300 baris), semakin mudah dirawat.</li>
+                <li><strong>CCN (Cyclomatic Complexity Number):</strong> Jumlah jalur percabangan independen (if/else/switch/loop) dalam logika fungsi.
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>1 - 10: Rendah & Aman</em> | 🟡 <em>11 - 20: Sedang (rawan bug)</em> | 🔴 <em>&gt; 20: Tinggi & Kompleks (wajib modularisasi)</em></span>
+                </li>
+                <li><strong>MI (Maintainability Index, Skala 0 - 100):</strong> Indeks komprehensif kemudahan pemeliharaan kode berbasis perpaduan logaritma Halstead Volume, CCN, dan NCLOC.
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>Grade A (≥ 85): Bersih & Sangat Mudah Dipelihara</em> | 🟡 <em>Grade B (65 - 84): Cukup</em> | 🔴 <em>Grade C (&lt; 65): Technical Debt Tinggi</em></span>
+                </li>
+                <li><strong>Smells (Code Smells):</strong> Deteksi gejala arsitektur buruk: <em>God Class</em> (kelas terlalu besar), <em>Fat Controller</em> (logika bertumpuk di controller), dan <em>Deep Nesting</em> (percabangan bersarang &gt; 4 level).</li>
             </ul>
         </div>
 
@@ -473,7 +584,7 @@ impl ReportGenerator {
                     <th>Nama Berkas</th>
                     <th style="text-align:center;">Bahasa</th>
                     <th style="text-align:right;">NCLOC</th>
-                    <th style="text-align:right;">CCN</th>
+                    <th style="text-align:right;">CCN (Kompleksitas)</th>
                     <th style="text-align:right;">MI (0-100)</th>
                     <th style="text-align:center;">Smells</th>
                 </tr>
