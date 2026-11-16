@@ -1,5 +1,5 @@
 //! HTML and JSON Report Generator in Rust
-//! Menghasilkan laporan evaluasi bersih, profesional, dan print-friendly untuk lampiran skripsi/magang
+//! Menghasilkan laporan evaluasi bersih, profesional, edukatif, dan print-friendly untuk lampiran skripsi/magang
 
 use serde_json::Value;
 use std::fs;
@@ -30,6 +30,17 @@ impl ReportGenerator {
         let endpoints = report_data["endpoints_detail"].as_array();
         let quality = &report_data["code_quality"]["overview"];
 
+        let total_joules = totals["total_joules"].as_f64().unwrap_or(0.0);
+        let total_kwh = totals["total_kwh"].as_f64().unwrap_or(0.0);
+        let total_cpu_active_s = totals["total_cpu_active_s"].as_f64().unwrap_or(0.0);
+        let total_co2e_g = totals["total_co2e_g"].as_f64().unwrap_or(0.0);
+
+        let kwh_formatted = if total_kwh < 0.0001 && total_kwh > 0.0 {
+            format!("{:.2e} kWh", total_kwh)
+        } else {
+            format!("{:.4} kWh", total_kwh)
+        };
+
         let mut rows_corr = String::new();
         if let Some(list) = correlated {
             for m in list {
@@ -37,9 +48,9 @@ impl ReportGenerator {
                     r#"<tr>
                         <td style="font-family:monospace;font-size:13px;">{}</td>
                         <td style="text-align:center;">{}</td>
-                        <td style="text-align:right;">{:.1} ms</td>
-                        <td style="text-align:right;font-weight:600;color:#059669;">{:.6} J</td>
-                        <td style="text-align:right;">{:.4} s</td>
+                        <td style="text-align:right;">{:.2} ms</td>
+                        <td style="text-align:right;font-weight:600;color:#059669;">{:.4} J</td>
+                        <td style="text-align:right;">{:.3} s</td>
                         <td style="text-align:center;"><span style="background:#ecfdf5;color:#065f46;padding:3px 8px;border-radius:12px;font-weight:bold;">{:.1}</span></td>
                     </tr>"#,
                     m["module_name"].as_str().unwrap_or(""),
@@ -61,9 +72,9 @@ impl ReportGenerator {
                         <td style="font-weight:600;color:#2563eb;">{}</td>
                         <td style="font-family:monospace;font-size:12px;">{}</td>
                         <td style="text-align:center;"><span style="background:#eff6ff;color:#1e40af;padding:2px 6px;border-radius:4px;font-weight:bold;">{}</span></td>
-                        <td style="text-align:right;">{:.1} ms</td>
-                        <td style="text-align:right;">{:.4} s</td>
-                        <td style="text-align:right;font-weight:600;color:#059669;">{:.6} J</td>
+                        <td style="text-align:right;">{:.2} ms</td>
+                        <td style="text-align:right;">{:.3} s</td>
+                        <td style="text-align:right;font-weight:600;color:#059669;">{:.4} J</td>
                     </tr>"#,
                     i + 1,
                     ep["method"].as_str().unwrap_or("GET"),
@@ -97,6 +108,11 @@ impl ReportGenerator {
         th {{ background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; }}
         tr:nth-child(even) {{ background: #f8fafc; }}
         .section-title {{ font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 35px; margin-bottom: 15px; border-left: 4px solid #10b981; padding-left: 10px; }}
+        .desc-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 18px 22px; margin-bottom: 30px; line-height: 1.6; font-size: 14px; color: #166534; }}
+        .desc-box h3 {{ margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #14532d; }}
+        .desc-box ul {{ margin: 0; padding-left: 20px; }}
+        .desc-box li {{ margin-bottom: 6px; }}
+        .desc-box strong {{ color: #0f172a; }}
         .footer {{ margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }}
     </style>
 </head>
@@ -116,17 +132,17 @@ impl ReportGenerator {
         <div class="grid">
             <div class="card">
                 <div class="lbl">Total Energi Murni</div>
-                <div class="val" style="color:#059669;">{:.6} J</div>
-                <div style="font-size:12px;color:#64748b;margin-top:4px;">({:.8} kWh)</div>
+                <div class="val" style="color:#059669;">{:.2} J</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">({})</div>
             </div>
             <div class="card">
                 <div class="lbl">Waktu Aktif CPU Murni</div>
-                <div class="val" style="color:#2563eb;">{:.4} s</div>
+                <div class="val" style="color:#2563eb;">{:.3} s</div>
                 <div style="font-size:12px;color:#64748b;margin-top:4px;">Bebas I/O Wait Bias</div>
             </div>
             <div class="card">
                 <div class="lbl">Jejak Karbon Bersih</div>
-                <div class="val" style="color:#7c3aed;">{:.6} g</div>
+                <div class="val" style="color:#7c3aed;">{:.4} g</div>
                 <div style="font-size:12px;color:#64748b;margin-top:4px;">CO2e (Grid 850g/kWh)</div>
             </div>
             <div class="card">
@@ -134,6 +150,17 @@ impl ReportGenerator {
                 <div class="val" style="color:#ea580c;">{}/100</div>
                 <div style="font-size:12px;color:#64748b;margin-top:4px;">{}</div>
             </div>
+        </div>
+
+        <div class="desc-box">
+            <h3>📖 Penjelasan Parameter & Metrik GreenCode Profiler</h3>
+            <ul>
+                <li><strong>Total Energi Murni (Joule & kWh):</strong> Total konsumsi daya listrik murni yang ditarik oleh instruksi CPU selama server memproses transaksi. Dihitung dengan rumus <code>E = P_avg × t_active</code>, di mana <code>t_active = t_user + t_system</code> langsung dari kernel OS.</li>
+                <li><strong>Waktu Aktif CPU Murni (Detik):</strong> Durasi aktual thread CPU bekerja mengeksekusi kode aplikasi. Berbeda dengan latensi jaringan/wall-clock time, parameter ini <em>kebal terhadap keterlambatan network I/O, waiting query database, atau koneksi lambat</em>.</li>
+                <li><strong>Jejak Karbon Bersih (gCO2e):</strong> Estimasi emisi gas rumah kaca hasil konversi energi komputasi listrik dengan faktor emisi pembangkit listrik rata-rata Indonesia (Grid Emission Factor ~850 gCO2e/kWh).</li>
+                <li><strong>Maintainability Index (MI):</strong> Skor kemampuan pemeliharaan kode (skala 0–100) berdasarkan kombinasi Cyclomatic Complexity, Volume Halstead, dan NCLOC. Skor &gt; 85: Grade A (Sangat Mudah Dirawat), 65–84: Grade B, &lt; 65: Grade C (Rawan Debt & Bug).</li>
+                <li><strong>Green Score (Efisiensi):</strong> Indeks efisiensi rasio konsumsi energi terhadap throughput dan kompleksitas modul kode.</li>
+            </ul>
         </div>
 
         <div class="section-title">Ringkasan Efisiensi Energi per Modul</div>
@@ -172,7 +199,7 @@ impl ReportGenerator {
         </table>
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.2.0 (Rust Native Architecture)</strong>.
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.2.0 (Rust Native Architecture)</strong>.<br>
             Laporan ini memenuhi standar audit perangkat lunak ramah lingkungan (Green Software Engineering).
         </div>
     </div>
@@ -180,10 +207,10 @@ impl ReportGenerator {
 </html>"##,
             meta["project_name"].as_str().unwrap_or("Web Project"),
             meta["timestamp"].as_str().unwrap_or(""),
-            totals["total_joules"].as_f64().unwrap_or(0.0),
-            totals["total_kwh"].as_f64().unwrap_or(0.0),
-            totals["total_cpu_active_s"].as_f64().unwrap_or(0.0),
-            totals["total_co2e_g"].as_f64().unwrap_or(0.0),
+            total_joules,
+            kwh_formatted,
+            total_cpu_active_s,
+            total_co2e_g,
             quality["average_maintainability_index"],
             quality["maintainability_grade"].as_str().unwrap_or("Grade A"),
             rows_corr,
@@ -227,7 +254,7 @@ impl ReportGenerator {
 
         let mut rows_smells = String::new();
         if let Some(list) = smells {
-            for s in list.iter().take(20) {
+            for s in list.iter().take(25) {
                 let badge_color = match s["severity"].as_str().unwrap_or("") {
                     "High" => "#ef4444",
                     "Medium" => "#f59e0b",
@@ -268,6 +295,12 @@ impl ReportGenerator {
         th {{ background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; }}
         tr:nth-child(even) {{ background: #f8fafc; }}
         .section-title {{ font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 35px; margin-bottom: 12px; border-left: 4px solid #3b82f6; padding-left: 10px; }}
+        .desc-box {{ background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 18px 22px; margin-bottom: 25px; line-height: 1.6; font-size: 14px; color: #1e40af; }}
+        .desc-box h3 {{ margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #1e3a8a; }}
+        .desc-box ul {{ margin: 0; padding-left: 20px; }}
+        .desc-box li {{ margin-bottom: 6px; }}
+        .desc-box strong {{ color: #0f172a; }}
+        .footer {{ margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }}
     </style>
 </head>
 <body>
@@ -297,6 +330,16 @@ impl ReportGenerator {
                 <div class="lbl">Code Smells</div>
                 <div class="val" style="color:#ef4444;">{}</div>
             </div>
+        </div>
+
+        <div class="desc-box">
+            <h3>📐 Penjelasan Metrik Kualitas Kode</h3>
+            <ul>
+                <li><strong>NCLOC (Non-Comment Lines of Code):</strong> Jumlah baris instruksi logika aktual yang dieksekusi, tanpa menghitung baris kosong dan baris komentar dokumentasi.</li>
+                <li><strong>Cyclomatic Complexity (CCN):</strong> Ukuran kuantitatif jumlah jalur percabangan independen (if/else/switch/loop) dalam program. Standar: 1–10 (Aman/Rendah), 11–20 (Sedang), &gt; 20 (Kompleks & Berisiko).</li>
+                <li><strong>Maintainability Index (MI):</strong> Skor kemampuan kode untuk dipelihara dan dipahami oleh developer lain berdasarkan perpaduan metrik kompleksitas, volume, dan baris kode.</li>
+                <li><strong>Code Smells:</strong> Indikator gejala buruk pada struktur kode, seperti <em>God Class</em> (kelas terlalu besar), <em>Fat Controller</em> (logika bisnis menumpuk di kontroler), dan <em>Deep Nesting</em> (percabangan bersarang &gt; 4 level).</li>
+            </ul>
         </div>
 
         <div class="section-title">Daftar Temuan Code Smells & Arsitektur</div>
@@ -330,6 +373,10 @@ impl ReportGenerator {
                 {}
             </tbody>
         </table>
+
+        <div class="footer">
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.2.0 (Rust Native Architecture)</strong>.
+        </div>
     </div>
 </body>
 </html>"##,
