@@ -1,0 +1,17 @@
+[package]
+name = "greencode-profiler"
+version = "1.2.0"
+edition = "2021"
+authors = ["Muhamad Haekal Syukur <haekal@greencode.org>"]
+description = "Universal Process-Level Energy & Code Quality Profiler in Rust (Zero-Cost Abstraction & Low-Overhead)"
+license = "MIT"
+repository = "https://github.com/Haekalss/GreenCode-Profiler"
+
+[[bin]]
+name = "greencode"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = "1.10"
