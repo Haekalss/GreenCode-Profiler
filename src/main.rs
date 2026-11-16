@@ -62,11 +62,22 @@ fn cmd_init(force: bool) {
             "cpu_tdp_watts": 15.0
         })
     } else {
+        let default_port = match ecosystem.as_str() {
+            "node" => 3000,
+            "php" => 8000,
+            "go" => 8080,
+            "python" => 8000,
+            _ => 8000,
+        };
+        let base_url = format!("http://127.0.0.1:{}", default_port);
+
+        println!("[GreenCode] Mengatur base_url otomatis ke port {}: {}", default_port, base_url);
+
         json!({
-            "project_name": "Web Service Application",
+            "project_name": format!("{} Application", ecosystem.to_uppercase()),
             "runtime": ecosystem,
             "source_dir": ".",
-            "base_url": "http://127.0.0.1:8000",
+            "base_url": base_url,
             "auth": { "type": "none" },
             "endpoints": [],
             "repeats": 5,
@@ -298,12 +309,9 @@ fn cmd_run(config_path: &str, no_open: bool) {
     println!("\n================================================================");
     println!("                     PROFILING SELESAI                          ");
     println!("================================================================");
-    println!("Total Energi Terukur : {:.6} Joules ({:.8} kWh)", total_joules, total_kwh);
-    println!("Total CPU Aktif      : {:.4} detik (Bebas I/O Wait Bias)", total_cpu_s);
-    println!("Jejak Karbon Bersih  : {:.6} gram CO2e", total_co2e_g);
-    println!("----------------------------------------------------------------");
-    println!("Laporan JSON      : {}", std::fs::canonicalize(json_path).unwrap_or_else(|_| json_path.into()).display());
-    println!("Dashboard Web UI  : {}", std::fs::canonicalize(html_path).unwrap_or_else(|_| html_path.into()).display());
+    println!("Laporan Komprehensif tersimpan di:");
+    println!(" - JSON : {}", std::fs::canonicalize(json_path).unwrap_or_else(|_| json_path.into()).display());
+    println!(" - HTML : {}", std::fs::canonicalize(html_path).unwrap_or_else(|_| html_path.into()).display());
     println!("================================================================\n");
 
     if !no_open {
@@ -311,58 +319,84 @@ fn cmd_run(config_path: &str, no_open: bool) {
     }
 }
 
+fn cmd_ui() {
+    let html_path = "reports/greencode_report.html";
+    if Path::new(html_path).exists() {
+        ReportGenerator::open_in_browser(html_path);
+    } else {
+        let qual_path = "reports/code_quality.html";
+        if Path::new(qual_path).exists() {
+            ReportGenerator::open_in_browser(qual_path);
+        } else {
+            println!("[GreenCode] Laporan belum dibuat. Jalankan 'greencode run' terlebih dahulu.");
+        }
+    }
+}
+
+fn print_help() {
+    print_banner();
+    println!("Penggunaan: greencode <command> [options]\n");
+    println!("Perintah Utama:");
+    println!("  init [--force]        Inisialisasi file konfigurasi greencode.json otomatis");
+    println!("  routes [dir]          Deteksi dan tampilkan rute nyata aplikasi");
+    println!("  detect                Pindai proses server aktif dan PID-nya");
+    println!("  analyze [dir]         Analisis kualitas kode statis (CCN, MI, LOC, Smells)");
+    println!("  run [config.json]     Jalankan profiling energi dan kualitas kode komprehensif");
+    println!("  ui                    Buka laporan HTML di peramban web");
+    println!("  version               Tampilkan versi GreenCode Profiler");
+    println!("  help                  Tampilkan panduan bantuan ini\n");
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let cmd = if args.len() > 1 { args[1].as_str() } else { "run" };
+    if args.len() < 2 {
+        print_help();
+        return;
+    }
 
-    match cmd {
+    match args[1].as_str() {
         "init" => {
             let force = args.iter().any(|a| a == "-f" || a == "--force");
             cmd_init(force);
         }
+        "routes" => {
+            let dir = if args.len() > 2 && !args[2].starts_with('-') {
+                &args[2]
+            } else {
+                "."
+            };
+            cmd_routes(dir, 30);
+        }
         "detect" => {
             let lang = if args.len() > 2 { &args[2] } else { "auto" };
-            let port = args.get(3).and_then(|p| p.parse().ok());
-            cmd_detect(lang, port);
+            cmd_detect(lang, None);
         }
         "analyze" => {
-            let path = if args.len() > 2 { &args[2] } else { "." };
+            let target = if args.len() > 2 && !args[2].starts_with('-') {
+                &args[2]
+            } else {
+                "."
+            };
             let no_open = args.iter().any(|a| a == "--no-open");
-            cmd_analyze(path, no_open);
-        }
-        "routes" => {
-            let path = if args.len() > 2 { &args[2] } else { "." };
-            let limit = args.get(3).and_then(|l| l.parse().ok()).unwrap_or(30);
-            cmd_routes(path, limit);
-        }
-        "ui" => {
-            let path = if args.len() > 2 { &args[2] } else { "reports/greencode_report.html" };
-            ReportGenerator::open_in_browser(path);
-        }
-        "version" | "--version" | "-v" => {
-            println!("GreenCode Profiler v1.2.0 (Rust Native Architecture - Zero Cost Abstraction)");
+            cmd_analyze(target, no_open);
         }
         "run" => {
-            let config_path = if args.len() > 2 && !args[2].starts_with('-') { &args[2] } else { "greencode.json" };
+            let config = if args.len() > 2 && !args[2].starts_with('-') {
+                &args[2]
+            } else {
+                "greencode.json"
+            };
             let no_open = args.iter().any(|a| a == "--no-open");
-            cmd_run(config_path, no_open);
+            cmd_run(config, no_open);
         }
-        "help" | "--help" | "-h" => {
-            print_banner();
-            println!("Penggunaan: greencode <command> [opsi]");
-            println!("\nDaftar Perintah:");
-            println!("  init     : Membuat template greencode.json & mendeteksi rute otomatis");
-            println!("  detect   : Diagnosa proses server aktif di port target");
-            println!("  analyze  : Analisis kualitas kode statis (NCLOC, CCN, Maintainability, Smells)");
-            println!("  routes   : Menampilkan rute otomatis dari Next.js & Laravel");
-            println!("  run      : Menjalankan profiling lengkap (Kualitas Kode + Energi Runtime)");
-            println!("  ui       : Membuka dashboard HTML di web browser");
-            println!("  version  : Menampilkan versi GreenCode Profiler");
+        "ui" => cmd_ui(),
+        "version" | "-v" | "--version" => {
+            println!("GreenCode Profiler v1.2.0 (Rust Native Architecture - Zero Cost Abstraction)");
         }
-        _ => {
-            let config_path = "greencode.json";
-            let no_open = args.iter().any(|a| a == "--no-open");
-            cmd_run(config_path, no_open);
+        "help" | "-h" | "--help" => print_help(),
+        other => {
+            println!("[GreenCode] Perintah tidak dikenal: '{}'", other);
+            println!("            Gunakan 'greencode help' untuk melihat daftar perintah.");
         }
     }
 }
