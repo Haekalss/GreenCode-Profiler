@@ -25,82 +25,67 @@
 > * ❌ **TIDAK PERLU** install Rust compiler (`rustc` / `cargo`).
 > * ❌ **TIDAK PERLU** install Python atau PHP runtime.
 > * ❌ **TIDAK PERLU** install library C / GCC / Visual C++ Redistributable.
-> * ✅ **Pengguna umum cukup download file ZIP / `.exe`**, ekstrak ke folder mana saja, dan aplikasi bisa langsung dijalankan!
+> * ✅ **Pengguna umum cukup download file ZIP**, ekstrak file `greencode.exe`, dan langsung jalankan di folder project manapun!
 >
 > *(Rust hanya dibutuhkan oleh developer yang ingin memodifikasi atau meng-compile ulang kode sumber GreenCode).*
 
 ---
 
-## 🌟 Fitur Utama
+## 📦 Panduan Praktis Penggunaan `greencode.exe` (Standalone Portable)
 
-1. **🦀 Rust Native Engine — Zero-Cost Abstraction:**  
-   Seluruh core engine ditulis dalam Rust murni. Binary standalone ~4.5 MB mandiri, tanpa runtime eksternal.
+Jika Anda mengunduh paket **`GreenCode-v1.2.0-windows-x64.zip`**, ikuti panduan praktis berikut:
 
-2. **⚡ Kebal Bias Jaringan (I/O Wait Isolation):**  
-   Hanya mengukur waktu CPU aktif murni ($t_{\text{user}} + t_{\text{system}}$) via kernel API (`GetProcessTimes` Windows / `/proc/PID/stat` Linux). Bebas dari bias latency database atau koneksi internet lambat yang mengacaukan alat konvensional seperti CodeCarbon.
+### 🚀 Cara A — Penggunaan Cepat (Langsung Taruh di Folder Project)
+*Paling mudah jika Anda hanya ingin menguji satu project web tertentu.*
 
-3. **📐 Built-in Static Code Quality Analyzer:**  
-   Menganalisis Cyclomatic Complexity (CCN), Maintainability Index (MI), NCLOC, dan mendeteksi arsitektur buruk (*God Class, Fat Controller, Deep Nesting*) tanpa perlu SonarQube atau Lizard.
+1. **Ekstrak file ZIP**, ambil file **`greencode.exe`**.
+2. **Copy / Salin** file `greencode.exe` ke dalam folder project web yang ingin Anda profil (misal di root project Laravel, Next.js, Express, atau FastAPI).
+3. **Pastikan server web Anda sudah menyala** di terminal lain (misal: `npm run dev` di port 3000, atau `php artisan serve` di port 8000).
+4. **Buka Terminal (PowerShell / Command Prompt)** di folder project tersebut, lalu jalankan:
 
-4. **🗂️ Full-Stack Monorepo (FE + BE) Discovery:**  
-   Memindai workspace monorepo dengan folder Frontend (`Next.js / React`) dan Backend (`Laravel / Python / Go`) secara simultan, memprofil kedua port (misal 3000 & 8000) dan menyatukan hasilnya dalam satu laporan utuh.
-
-5. **🔍 Automatic Route & Endpoint Discovery:**  
-   Mendeteksi otomatis rute dari Next.js App Router dan Laravel `routes/api.php` secara cerdas (otomatis memfilter rute dinamis dan mencocokkan port).
-
-6. **🌐 Language-Agnostic Profiling:**  
-   Bekerja dari luar proses target. Mendukung **Node.js (Next.js/Express), PHP (Laravel), Python (FastAPI/Django), dan Go (Gin/Fiber)** tanpa modifikasi kode aplikasi target.
-
-7. **📄 Print-Friendly HTML Reports dengan Logo Resmi:**  
-   Menghasilkan laporan HTML profesional berlatar terang dengan logo GreenCode tersemat rapi (offline base64), badge warna peringatan dinamis, dan box penjelasan parameter lengkap untuk lampiran skripsi/magang.
+   * **Langkah 1: Cek Versi**
+     ```powershell
+     .\greencode.exe version
+     ```
+   * **Langkah 2: Buat Konfigurasi Otomatis (Auto-Detect Routes)**
+     ```powershell
+     .\greencode.exe init
+     ```
+     *(Engine otomatis memindai rute halaman Frontend atau endpoint API Backend dan membuat file `greencode.json`)*.
+   * **Langkah 3: Jalankan Profiling Energi & Kualitas Kode**
+     ```powershell
+     .\greencode.exe run
+     ```
+   * **Langkah 4: Hasil Laporan**
+     Laporan audit HTML interaktif dengan logo resmi akan langsung terbuka secara otomatis di browser Anda di `reports/greencode_report.html`!
 
 ---
 
-## 📦 Pilihan Cara Pakai & Instalasi
+### 🌐 Cara B — Jadikan Perintah Global di Windows (Rekomendasi Jangka Panjang)
+*Agar perintah `greencode` bisa langsung dipanggil di folder mana saja tanpa perlu copy-paste file `.exe` berkali-kali.*
 
-Pilih cara yang paling mudah sesuai kenyamanan Anda:
-
-### 🟢 Cara 1 — Paling Mudah untuk Pengguna Umum (Standalone Portable ZIP)
-*Cocok untuk dosen, penguji, rekan tim, atau pengguna yang tidak mau ribet install apa-apa.*
-
-1. Unduh paket portable dari rilis repositori:
-   * 📥 **[Download GreenCode-v1.2.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest)**
-2. Ekstrak file `.zip` tersebut.
-3. Di dalamnya sudah ada file `greencode.exe` siap pakai!
-4. Buka terminal (CMD / PowerShell) di folder tersebut, lalu jalankan:
+1. Buat folder baru di komputer Anda, misal: `C:\Tools\GreenCode\`
+2. Letakkan file `greencode.exe` di dalam folder tersebut.
+3. Daftarkan folder tersebut ke **Environment Variables (PATH)** Windows:
+   * Tekan tombol **Windows**, ketik **env**, pilih **Edit the system environment variables**.
+   * Klik tombol **Environment Variables...** di kanan bawah.
+   * Pada bagian **User variables**, pilih **Path** lalu klik **Edit...**
+   * Klik tombol **New**, lalu masukkan: `C:\Tools\GreenCode`
+   * Klik **OK** $\rightarrow$ **OK** $\rightarrow$ **OK**.
+4. **Selesai!** Buka terminal baru di folder project mana saja, Anda cukup mengetik:
    ```bash
-   .\greencode.exe version
-   .\greencode.exe init
-   .\greencode.exe run
+   greencode init
+   greencode run
    ```
 
 ---
 
-### 🟢 Cara 2 — Via NPM Global (Rekomendasi untuk Web Developer)
-*Cocok jika Anda sudah terbiasa dengan Node.js / NPM di komputer Anda.*
-
-NPM hanya bertindak sebagai *launcher* pintasan global; binary yang dijalankan di latar belakang tetaplah Rust native murni:
-
+### 🟢 Cara C — Via NPM Global (Untuk Web Developer)
+Jika di komputer Anda sudah terbiasa menggunakan Node.js:
 ```bash
 npm install -g --force git+https://github.com/Haekalss/GreenCode-Profiler.git
 ```
-
-Setelah itu perintah `greencode` langsung aktif di terminal mana saja:
-```bash
-greencode version
-```
-
----
-
-### 🦀 Cara 3 — Compile Manual via Cargo (Khusus Developer Rust)
-*Hanya jika Anda ingin memodifikasi source code GreenCode Profiler sendiri.*
-
-```bash
-git clone https://github.com/Haekalss/GreenCode-Profiler.git
-cd GreenCode-Profiler
-cargo build --release
-```
-Binary hasil kompilasi akan berada di `target/release/greencode.exe`.
+Lalu panggil `greencode run` di terminal.
 
 ---
 
@@ -116,29 +101,6 @@ Binary hasil kompilasi akan berada di `target/release/greencode.exe`.
 | `greencode ui` | Buka laporan HTML dashboard di browser |
 | `greencode version` | Tampilkan versi dan status arsitektur engine |
 | `greencode help [cmd]` | Tampilkan panduan bantuan semua perintah |
-
----
-
-## 🚀 Alur Penggunaan Standar
-
-1. **Pastikan server aplikasi target Anda sudah berjalan** (misal: `npm run dev` di port 3000 atau `php artisan serve` di port 8000).
-2. **Buka terminal di folder project Anda:**
-   ```bash
-   cd path/to/project
-   ```
-3. **Inisialisasi konfigurasi otomatis:**
-   ```bash
-   greencode init
-   ```
-   *(Engine otomatis mendeteksi apakah Anda berada di folder FE, BE, atau monorepo, mencocokkan port, dan menyusun rute yang siap diprofil).*
-4. **Jalankan Profiling:**
-   ```bash
-   greencode run
-   ```
-5. **Buka Laporan:**
-   Laporan komprehensif akan langsung terbuka di browser Anda:
-   - `reports/greencode_report.html` (Hasil gabungan Profiling Energi + Kualitas Struktur Kode)
-   - `reports/code_quality.html` (Hasil Analisis Kualitas Kode statis)
 
 ---
 
@@ -186,7 +148,6 @@ Contoh file konfigurasi hasil deteksi monorepo otomatis:
 
 GreenCode Profiler menghasilkan laporan HTML interaktif, profesional, dan siap cetak (*print-friendly*):
 
-### `reports/greencode_report.html` (Hasil `greencode run`)
 - **Branded Header:** Menampilkan logo resmi GreenCode Profiler (embedded offline base64).
 - **Executive Metric Cards:** Total Energi Murni (Joule & kWh ringkas), Waktu Aktif CPU Murni (detik), Emisi Karbon (gCO2e), dan Skor Maintainability Index (Grade A/B/C).
 - **Panduan Edukatif Parameter:** Kotak penjelasan resmi arti setiap metrik energi dan kualitas kode.
