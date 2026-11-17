@@ -75,11 +75,11 @@ impl CodeQualityAnalyzer {
         ];
 
         let branch_regex = Regex::new(
-            r"(?i)\b(if|else\s*if|elif|for|foreach|while|case|catch|except)\b|&&|\|\||\band\b|\bor\b|\?\s*[^:]+:|\?\?"
+            r"(?i)\b(if|else\s*if|elif|for|foreach|while|case|catch|except|match)\b|&&|\|\||\band\b|\bor\b|\?\s*[^:]+:|\?\?"
         ).unwrap();
 
         let func_regex = Regex::new(
-            r"(?m)^\s*(?:public|protected|private|static|\s)*\s*function\s+([a-zA-Z0-9_]+)\s*\(|^\s*(?:export\s+)?(?:async\s+)?function\s+([a-zA-Z0-9_]+)\s*\(|const\s+([a-zA-Z0-9_]+)\s*=\s*(?:async\s*)?\("
+            r"(?m)^\s*(?:pub\s+(?:\([^\)]+\)\s+)?)?(?:async\s+)?(?:unsafe\s+)?fn\s+([a-zA-Z0-9_]+)\s*\(|^\s*(?:public|protected|private|static|\s)*\s*function\s+([a-zA-Z0-9_]+)\s*\(|^\s*(?:export\s+)?(?:async\s+)?function\s+([a-zA-Z0-9_]+)\s*\(|const\s+([a-zA-Z0-9_]+)\s*=\s*(?:async\s*)?\("
         ).unwrap();
 
         let mut files_result = Vec::new();
@@ -99,6 +99,7 @@ impl CodeQualityAnalyzer {
                 "js" | "jsx" => "javascript",
                 "py" => "python",
                 "go" => "go",
+                "rs" => "rust",
                 _ => continue,
             };
 
@@ -138,7 +139,7 @@ impl CodeQualityAnalyzer {
                 }
 
                 for cap in func_regex.captures_iter(&content) {
-                    let fname = cap.get(1).or_else(|| cap.get(2)).or_else(|| cap.get(3));
+                    let fname = cap.get(1).or_else(|| cap.get(2)).or_else(|| cap.get(3)).or_else(|| cap.get(4));
                     if let Some(m) = fname {
                         file_functions.push(FunctionMetric {
                             name: m.as_str().to_string(),

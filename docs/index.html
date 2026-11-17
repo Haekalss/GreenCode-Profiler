@@ -396,7 +396,7 @@
     <div class="hero">
       <div class="hero-badge">&#9679; Rust Native Architecture</div>
       <h1>Universal Energy &amp; Code Quality Profiler</h1>
-      <p>Framework audit efisiensi energi komputasi (Joule &amp; kWh) dan analisis kualitas kode statis untuk web app modern (Next.js, Laravel, FastAPI, Express, Go).</p>
+      <p>Framework audit efisiensi energi komputasi (Joule &amp; kWh) dan analisis kualitas kode statis untuk web app modern (Next.js, Laravel, FastAPI, Express, Go, Rust).</p>
       
       <div class="hero-actions">
         <a href="#instalasi" class="btn-action btn-action-primary">Cara Pakai &darr;</a>
@@ -412,12 +412,15 @@
 
       <div class="tab-nav">
         <button class="tab-item active" onclick="showTab('tab-exe')">Metode 1: Portable .exe (Tanpa Install)</button>
-        <button class="tab-item" onclick="showTab('tab-npm')">Metode 2: NPM Global (Otomatis)</button>
+        <button class="tab-item" onclick="showTab('tab-npm')">Node.js (npm)</button>
+        <button class="tab-item" onclick="showTab('tab-pip')">Python (pip)</button>
+        <button class="tab-item" onclick="showTab('tab-composer')">PHP (Composer)</button>
+        <button class="tab-item" onclick="showTab('tab-go')">Go (go install)</button>
       </div>
 
       <!-- METODE 1 -->
       <div id="tab-exe" class="tab-panel active">
-        <p><strong>Syarat:</strong> Bebas dependensi (tidak butuh Node.js maupun Rust). Cukup Windows 64-bit.</p>
+        <p><strong>Syarat:</strong> Bebas dependensi (tidak butuh Node.js, Python, maupun Rust). Cukup Windows 64-bit.</p>
         <pre># 1. Unduh dan ekstrak file GreenCode-v1.2.0-windows-x64.zip dari GitHub Releases
 # 2. Salin file 'greencode.exe' ke root folder project Anda
 # 3. Pastikan server aplikasi berjalan (misal: port 3000 / 8000)
@@ -427,13 +430,46 @@
 .\greencode.exe run</pre>
       </div>
 
-      <!-- METODE 2 -->
+      <!-- METODE NPM -->
       <div id="tab-npm" class="tab-panel">
-        <p><strong>Syarat:</strong> Memerlukan Node.js di komputer.</p>
-        <pre># 1. Jalankan perintah ini sekali saja di terminal (CMD / PowerShell):
+        <p><strong>Syarat:</strong> Memerlukan Node.js.</p>
+        <pre># 1. Jalankan perintah instalasi global via npm:
 npm install -g git+https://github.com/Haekalss/GreenCode-Profiler.git
 
 # 2. Masuk ke folder project manapun, lalu langsung jalankan:
+greencode init
+greencode run</pre>
+      </div>
+
+      <!-- METODE PIP -->
+      <div id="tab-pip" class="tab-panel">
+        <p><strong>Syarat:</strong> Memerlukan Python (pip).</p>
+        <pre># 1. Jalankan perintah instalasi via pip:
+pip install git+https://github.com/Haekalss/GreenCode-Profiler.git
+
+# 2. Perintah greencode langsung tersedia di terminal:
+greencode init
+greencode run</pre>
+      </div>
+
+      <!-- METODE COMPOSER -->
+      <div id="tab-composer" class="tab-panel">
+        <p><strong>Syarat:</strong> Memerlukan PHP & Composer di project Anda.</p>
+        <pre># 1. Tambahkan ke composer dev dependencies:
+composer require --dev greencode/profiler
+
+# 2. Jalankan binary runner dari vendor:
+./vendor/bin/greencode init
+./vendor/bin/greencode run</pre>
+      </div>
+
+      <!-- METODE GO -->
+      <div id="tab-go" class="tab-panel">
+        <p><strong>Syarat:</strong> Memerlukan Go compiler.</p>
+        <pre># 1. Install CLI launcher ke GOPATH/bin:
+go install github.com/Haekalss/GreenCode-Profiler/cmd/greencode@latest
+
+# 2. Jalankan perintah:
 greencode init
 greencode run</pre>
       </div>

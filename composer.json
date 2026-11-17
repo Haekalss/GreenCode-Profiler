@@ -1,0 +1,14 @@
+{
+    "name": "greencode/profiler",
+    "description": "GreenCode Profiler - Process-Level Energy Profiler & Code Quality Analyzer",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "GreenCode Team"
+        }
+    ],
+    "bin": [
+        "bin/greencode"
+    ]
+}

@@ -26,7 +26,7 @@ GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Penggun
 2. **Isolasi Bias Jaringan (I/O Wait Isolation):** Pengukuran energi didasarkan pada waktu aktif kernel CPU ($t_{\text{user}} + t_{\text{system}}$) melalui Windows NT API (`GetProcessTimes`) dan Linux `/proc/[PID]/stat`, sehingga kebal terhadap latensi koneksi internet atau antrean query basis data.
 3. **Analisis Kualitas Kode Bawaan:** Memeriksa Cyclomatic Complexity (CCN), Maintainability Index (MI), Non-Comment Lines of Code (NCLOC), serta mendeteksi _Architectural Code Smells_ (_God Class_, _Fat Controller_, _Deep Nesting_).
 4. **Dukungan Monorepo & Multi-Service:** Mendeteksi dan memprofil arsitektur monorepo (Frontend Next.js dan Backend Laravel) secara simultan.
-5. **Bahasa-Agnostik:** Bekerja dari luar proses aplikasi target (_external process profiling_). Mendukung Node.js, PHP, Python, dan Go.
+5. **Bahasa-Agnostik:** Bekerja dari luar proses aplikasi target (_external process profiling_). Mendukung Node.js, PHP, Python, Go, dan Rust.
 6. **Laporan HTML Komprehensif:** Menghasilkan dokumen laporan profesional berlatar terang dengan logo tersemat (_offline base64_), indikator ambang batas dinamis, dan deskripsi parameter teknis.
 
 ---
@@ -57,15 +57,32 @@ Laporan HTML hasil audit akan dibuat di `reports/greencode_report.html` dan otom
 
 ---
 
-### Metode 2: CLI Global via NPM (Hanya Jika Laptop Sudah Memiliki Node.js)
+### Metode 2: Instalasi Global Melalui Package Manager
 
-Metode ini **hanya dapat digunakan jika komputer Anda sudah terpasang Node.js & NPM**. NPM akan mendaftarkan perintah `greencode` ke sistem secara global sehingga dapat dipanggil dari direktori manapun tanpa perlu menyalin berkas `.exe`:
+GreenCode Profiler menyediakan pembungkus (_launcher_) di berbagai manajer paket agar Anda dapat menggunakannya sebagai perintah global di sistem sesuai preferensi ekosistem:
 
+#### Opsi A: Node.js (npm)
 ```bash
 npm install -g --force git+https://github.com/Haekalss/GreenCode-Profiler.git
 ```
 
-Setelah terpasang, perintah `greencode` dapat dipanggil langsung dari direktori mana saja:
+#### Opsi B: Python (pip)
+```bash
+pip install git+https://github.com/Haekalss/GreenCode-Profiler.git
+```
+
+#### Opsi C: PHP (Composer Dev Tool)
+```bash
+composer require --dev greencode/profiler
+# Jalankan via: ./vendor/bin/greencode
+```
+
+#### Opsi D: Go (go install)
+```bash
+go install github.com/Haekalss/GreenCode-Profiler/cmd/greencode@latest
+```
+
+Setelah terpasang, perintah `greencode` (atau `./vendor/bin/greencode` pada PHP) dapat dipanggil langsung dari direktori mana saja:
 
 ```bash
 greencode init

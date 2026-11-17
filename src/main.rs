@@ -66,6 +66,7 @@ fn cmd_init(force: bool) {
             "node" => 3000,
             "php" => 8000,
             "go" => 8080,
+            "rust" => 8080,
             "python" => 8000,
             _ => 8000,
         };

@@ -87,6 +87,20 @@ impl RuntimeDetector {
                         default_port: 8080,
                         base_url: "http://127.0.0.1:8080".to_string(),
                     });
+                } else if path.join("Cargo.toml").exists() {
+                    let src = if path.join("src").exists() {
+                        format!("{}/src", dirname)
+                    } else {
+                        dirname.clone()
+                    };
+                    backend_info = Some(ComponentInfo {
+                        language: "rust".to_string(),
+                        framework: "actix_axum".to_string(),
+                        dir: dirname.clone(),
+                        source_dir: src,
+                        default_port: 8080,
+                        base_url: "http://127.0.0.1:8080".to_string(),
+                    });
                 }
 
                 // 2. Cek Frontend (Next.js / React)
@@ -149,6 +163,9 @@ impl RuntimeDetector {
         if p.join("requirements.txt").exists() || p.join("pyproject.toml").exists() {
             return "python".to_string();
         }
+        if p.join("Cargo.toml").exists() {
+            return "rust".to_string();
+        }
         if p.join("go.mod").exists() {
             return "go".to_string();
         }
@@ -169,6 +186,8 @@ impl RuntimeDetector {
             vec![8000]
         } else if language == "node" {
             vec![3000]
+        } else if language == "rust" || language == "go" {
+            vec![8080, 3000]
         } else {
             vec![8000, 3000, 8080, 5000]
         };
