@@ -130,14 +130,14 @@ Contoh konfigurasi standar untuk lingkungan monorepo:
 
 ```json
 {
-  "project_name": "Full-Stack Monorepo (aptika_fe + aptika_be)",
+  "project_name": "Full-Stack Monorepo (frontend + backend)",
   "runtime": "fullstack",
   "base_url": "http://127.0.0.1:8000",
   "services": {
     "frontend": "http://127.0.0.1:3000",
     "backend": "http://127.0.0.1:8000"
   },
-  "source_dirs": ["aptika_be/app", "aptika_fe/src"],
+  "source_dirs": ["backend/app", "frontend/src"],
   "repeats": 5,
   "cpu_tdp_watts": 15.0,
   "endpoints": [
