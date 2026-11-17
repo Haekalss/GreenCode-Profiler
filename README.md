@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="GreenCode Profiler Logo" width="180" />
+  <img src="assets/logooo.png" alt="GreenCode Profiler Logo" width="180" />
 </p>
 
 # GreenCode Profiler
@@ -41,7 +41,7 @@ Metode ini **sama sekali tidak membutuhkan instalasi dependensi apapun** (tidak 
 
 1. Unduh arsip rilis resmi: [GreenCode-v1.2.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
 2. Ekstrak arsip tersebut untuk mendapatkan berkas `greencode.exe`.
-3. Tempatkan berkas `greencode.exe` di direktori utama (*root*) proyek web yang akan diuji.
+3. Tempatkan berkas `greencode.exe` di direktori utama (_root_) proyek web yang akan diuji.
 4. Pastikan server aplikasi web Anda sedang berjalan (contoh: port 3000 atau port 8000).
 5. Jalankan perintah berikut melalui terminal (PowerShell / Command Prompt):
 
