@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logooo.png" alt="GreenCode Profiler Logo" width="180" />
+  <img src="assets/logo.png" alt="GreenCode Profiler Logo" width="180" />
 </p>
 
 # GreenCode Profiler
