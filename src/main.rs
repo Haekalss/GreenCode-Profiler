@@ -391,7 +391,7 @@ fn main() {
         }
         "ui" => cmd_ui(),
         "version" | "-v" | "--version" => {
-            println!("GreenCode Profiler v1.2.0 (Rust Native Architecture - Zero Cost Abstraction)");
+            println!("GreenCode Profiler v1.2.0");
         }
         "help" | "-h" | "--help" => print_help(),
         other => {
