@@ -1,6 +1,6 @@
 [package]
 name = "greencode-profiler"
-version = "1.2.0"
+version = "1.3.0"
 edition = "2021"
 authors = ["Muhamad Haekal Syukur <haekal@greencode.org>"]
 description = "Universal Process-Level Energy & Code Quality Profiler in Rust (Zero-Cost Abstraction & Low-Overhead)"

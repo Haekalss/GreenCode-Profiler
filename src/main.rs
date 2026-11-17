@@ -1,4 +1,4 @@
-//! GreenCode Profiler v1.2.0 - Rust Native Architecture
+//! GreenCode Profiler v1.3.0 - Rust Native Architecture
 //! Universal Process-Level Energy Profiler & Green-Maintainability Framework
 
 mod analyzer;
@@ -21,7 +21,7 @@ use std::path::Path;
 
 fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.2.0 (Rust Native Architecture)         ");
+    println!("   GREENCODE PROFILER v1.3.0 (Rust Native Architecture)         ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -392,7 +392,7 @@ fn main() {
         }
         "ui" => cmd_ui(),
         "version" | "-v" | "--version" => {
-            println!("GreenCode Profiler v1.2.0");
+            println!("GreenCode Profiler v1.3.0");
         }
         "help" | "-h" | "--help" => print_help(),
         other => {
