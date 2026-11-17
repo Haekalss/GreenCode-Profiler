@@ -12,22 +12,22 @@
 [![Distribution: NPM](https://img.shields.io/badge/NPM-Launcher-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)
 [![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
 
-GreenCode Profiler (GCP) v1.2.0 adalah framework audit efisiensi energi perangkat lunak (*Green Software Engineering*) dan arsitektur kode (*Static Code Quality Analysis*). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
+GreenCode Profiler (GCP) v1.2.0 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_) dan arsitektur kode (_Static Code Quality Analysis_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
 
 ---
 
 ## Gambaran Umum
 
-GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Pengguna akhir (*end-user*, auditor, atau pengembang aplikasi) **tidak diwajibkan** memasang compiler Rust, Python runtime, atau PHP runtime di sistem operasi mereka. Aplikasi didistribusikan dalam bentuk biner mandiri (*standalone executable*) siap pakai.
+GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Pengguna akhir (_end-user_, auditor, atau pengembang aplikasi) **tidak diwajibkan** memasang compiler Rust, Python runtime, atau PHP runtime di sistem operasi mereka. Aplikasi didistribusikan dalam bentuk biner mandiri (_standalone executable_) siap pakai.
 
 ### Fitur Utama
 
-1. **Rust Native Engine:** Menggunakan abstraksi berbiaya nol (*zero-cost abstractions*) dengan konsumsi memori minimal dan kecepatan eksekusi tinggi.
+1. **Rust Native Engine:** Menggunakan abstraksi berbiaya nol (_zero-cost abstractions_) dengan konsumsi memori minimal dan kecepatan eksekusi tinggi.
 2. **Isolasi Bias Jaringan (I/O Wait Isolation):** Pengukuran energi didasarkan pada waktu aktif kernel CPU ($t_{\text{user}} + t_{\text{system}}$) melalui Windows NT API (`GetProcessTimes`) dan Linux `/proc/[PID]/stat`, sehingga kebal terhadap latensi koneksi internet atau antrean query basis data.
-3. **Analisis Kualitas Kode Bawaan:** Memeriksa Cyclomatic Complexity (CCN), Maintainability Index (MI), Non-Comment Lines of Code (NCLOC), serta mendeteksi *Architectural Code Smells* (*God Class*, *Fat Controller*, *Deep Nesting*).
+3. **Analisis Kualitas Kode Bawaan:** Memeriksa Cyclomatic Complexity (CCN), Maintainability Index (MI), Non-Comment Lines of Code (NCLOC), serta mendeteksi _Architectural Code Smells_ (_God Class_, _Fat Controller_, _Deep Nesting_).
 4. **Dukungan Monorepo & Multi-Service:** Mendeteksi dan memprofil arsitektur monorepo (Frontend Next.js dan Backend Laravel) secara simultan.
-5. **Bahasa-Agnostik:** Bekerja dari luar proses aplikasi target (*external process profiling*). Mendukung Node.js, PHP, Python, dan Go.
-6. **Laporan HTML Komprehensif:** Menghasilkan dokumen laporan profesional berlatar terang dengan logo tersemat (*offline base64*), indikator ambang batas dinamis, dan deskripsi parameter teknis.
+5. **Bahasa-Agnostik:** Bekerja dari luar proses aplikasi target (_external process profiling_). Mendukung Node.js, PHP, Python, dan Go.
+6. **Laporan HTML Komprehensif:** Menghasilkan dokumen laporan profesional berlatar terang dengan logo tersemat (_offline base64_), indikator ambang batas dinamis, dan deskripsi parameter teknis.
 
 ---
 
@@ -35,9 +35,9 @@ GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Penggun
 
 Pilih salah satu metode instalasi yang sesuai dengan alur kerja Anda:
 
-### Metode 1: Biner Portabel (Rekomendasi untuk Pengguna Umum)
+### Metode 1: Biner Portabel (Rekomendasi Utama - Tanpa Node.js / Zero Dependency)
 
-Metode ini tidak membutuhkan instalasi dependensi apapun.
+Metode ini **sama sekali tidak membutuhkan instalasi dependensi apapun** (tidak perlu Node.js, Python, atau Rust). Sangat cocok untuk pengguna umum, penguji, atau developer bahasa apapun.
 
 1. Unduh arsip rilis resmi: [GreenCode-v1.2.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
 2. Ekstrak arsip tersebut untuk mendapatkan berkas `greencode.exe`.
@@ -57,9 +57,9 @@ Laporan HTML hasil audit akan dibuat di `reports/greencode_report.html` dan otom
 
 ---
 
-### Metode 2: CLI Global via NPM
+### Metode 2: CLI Global via NPM (Hanya Jika Laptop Sudah Memiliki Node.js)
 
-Bagi lingkungan pengembangan yang telah memiliki Node.js, GreenCode dapat dipasang sebagai perintah global:
+Metode ini **hanya dapat digunakan jika komputer Anda sudah terpasang Node.js & NPM**. NPM akan mendaftarkan perintah `greencode` ke sistem secara global sehingga dapat dipanggil dari direktori manapun tanpa perlu menyalin berkas `.exe`:
 
 ```bash
 npm install -g --force git+https://github.com/Haekalss/GreenCode-Profiler.git
@@ -90,16 +90,16 @@ Berkas biner hasil kompilasi tersedia di `target/release/greencode.exe`.
 
 ## Daftar Perintah CLI
 
-| Perintah | Parameter | Deskripsi |
-|---|---|---|
-| `greencode init` | `[--force]` | Membuat berkas konfigurasi `greencode.json` dengan deteksi rute otomatis |
-| `greencode run` | `[config.json] [--no-open]` | Menjalankan profiling energi runtime dan analisis kualitas struktur kode |
-| `greencode analyze` | `[dir] [--no-open]` | Menjalankan analisis kualitas kode statis (NCLOC, CCN, MI, Smells) |
-| `greencode routes` | `[dir]` | Memindai dan menampilkan rute nyata dari kode sumber aplikasi target |
-| `greencode detect` | `[language]` | Memindai proses server aktif beserta nomor Process ID (PID) dan port |
-| `greencode ui` | - | Membuka laporan dashboard HTML hasil profiling terakhir di peramban |
-| `greencode version` | - | Menampilkan informasi versi dan arsitektur engine |
-| `greencode help` | `[cmd]` | Menampilkan panduan penggunaan perintah |
+| Perintah            | Parameter                   | Deskripsi                                                                |
+| ------------------- | --------------------------- | ------------------------------------------------------------------------ |
+| `greencode init`    | `[--force]`                 | Membuat berkas konfigurasi `greencode.json` dengan deteksi rute otomatis |
+| `greencode run`     | `[config.json] [--no-open]` | Menjalankan profiling energi runtime dan analisis kualitas struktur kode |
+| `greencode analyze` | `[dir] [--no-open]`         | Menjalankan analisis kualitas kode statis (NCLOC, CCN, MI, Smells)       |
+| `greencode routes`  | `[dir]`                     | Memindai dan menampilkan rute nyata dari kode sumber aplikasi target     |
+| `greencode detect`  | `[language]`                | Memindai proses server aktif beserta nomor Process ID (PID) dan port     |
+| `greencode ui`      | -                           | Membuka laporan dashboard HTML hasil profiling terakhir di peramban      |
+| `greencode version` | -                           | Menampilkan informasi versi dan arsitektur engine                        |
+| `greencode help`    | `[cmd]`                     | Menampilkan panduan penggunaan perintah                                  |
 
 ---
 
@@ -116,10 +116,7 @@ Contoh konfigurasi standar untuk lingkungan monorepo:
     "frontend": "http://127.0.0.1:3000",
     "backend": "http://127.0.0.1:8000"
   },
-  "source_dirs": [
-    "aptika_be/app",
-    "aptika_fe/src"
-  ],
+  "source_dirs": ["aptika_be/app", "aptika_fe/src"],
   "repeats": 5,
   "cpu_tdp_watts": 15.0,
   "endpoints": [
@@ -147,14 +144,14 @@ Contoh konfigurasi standar untuk lingkungan monorepo:
 
 Laporan HTML (`reports/greencode_report.html`) menyajikan metrik evaluasi dengan klasifikasi ambang batas objektif:
 
-| Parameter | Satuan / Skala | Ambang Batas Optimal | Keterangan Teknis |
-|---|---|---|---|
-| **Total Energi** | Joule (J) / kWh | < 2.0 J per transaksi | Total energi listrik murni yang ditarik thread CPU ($E = P_{\text{avg}} \times t_{\text{active}}$) |
-| **Waktu CPU Aktif** | Detik (s) | Sesuai beban logika | Durasi aktif prosesor mengeksekusi instruksi, bebas dari waktu tunggu I/O |
-| **Green Score** | 0 – 100 | $\ge$ 85 (Optimal) | Indeks efisiensi rasio konsumsi energi terhadap throughput dan latensi |
-| **CCN** | Angka Bulat | 1 – 10 (Rendah / Aman) | Cyclomatic Complexity Number, mengukur jalur percabangan logika independen |
-| **Maintainability Index** | 0 – 100 | $\ge$ 85 (Grade A) | Indeks kemudahan pemeliharaan berbasis perpaduan logaritma Halstead, CCN, dan NCLOC |
-| **Code Smells** | Jumlah Temuan | 0 temuan | Deteksi pelanggaran arsitektur (*God Class*, *Fat Controller*, *Deep Nesting*) |
+| Parameter                 | Satuan / Skala  | Ambang Batas Optimal   | Keterangan Teknis                                                                                  |
+| ------------------------- | --------------- | ---------------------- | -------------------------------------------------------------------------------------------------- |
+| **Total Energi**          | Joule (J) / kWh | < 2.0 J per transaksi  | Total energi listrik murni yang ditarik thread CPU ($E = P_{\text{avg}} \times t_{\text{active}}$) |
+| **Waktu CPU Aktif**       | Detik (s)       | Sesuai beban logika    | Durasi aktif prosesor mengeksekusi instruksi, bebas dari waktu tunggu I/O                          |
+| **Green Score**           | 0 – 100         | $\ge$ 85 (Optimal)     | Indeks efisiensi rasio konsumsi energi terhadap throughput dan latensi                             |
+| **CCN**                   | Angka Bulat     | 1 – 10 (Rendah / Aman) | Cyclomatic Complexity Number, mengukur jalur percabangan logika independen                         |
+| **Maintainability Index** | 0 – 100         | $\ge$ 85 (Grade A)     | Indeks kemudahan pemeliharaan berbasis perpaduan logaritma Halstead, CCN, dan NCLOC                |
+| **Code Smells**           | Jumlah Temuan   | 0 temuan               | Deteksi pelanggaran arsitektur (_God Class_, _Fat Controller_, _Deep Nesting_)                     |
 
 ---
 
