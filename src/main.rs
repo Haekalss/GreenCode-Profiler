@@ -1,4 +1,4 @@
-//! GreenCode Profiler v1.3.0 - Rust Native Architecture
+//! GreenCode Profiler v1.4.0 - Rust Native Architecture
 //! Universal Process-Level Energy Profiler & Green-Maintainability Framework
 
 mod analyzer;
@@ -6,6 +6,7 @@ mod attributor;
 mod correlator;
 mod detector;
 mod engine;
+mod php_auditor;
 mod reporter;
 
 use analyzer::CodeQualityAnalyzer;
@@ -13,6 +14,7 @@ use attributor::ModuleAttributor;
 use correlator::GreenCorrelator;
 use detector::{RouteDiscoverer, RuntimeDetector};
 use engine::ProcessEnergyEngine;
+use php_auditor::PhpAuditor;
 use reporter::ReportGenerator;
 use serde_json::{json, Value};
 use std::env;
@@ -21,7 +23,7 @@ use std::path::Path;
 
 fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.3.0 (Rust Native Architecture)         ");
+    println!("   GREENCODE PROFILER v1.4.0 (Rust Native Architecture)         ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -133,6 +135,25 @@ fn cmd_detect(lang: &str, port: Option<u16>) {
     println!("Target Language : {}", lang.to_uppercase());
     println!("Target Port     : {}", port.map(|p| p.to_string()).unwrap_or_else(|| "Semua".to_string()));
 
+    if lang == "php" || lang == "auto" || lang == "fullstack" {
+        let php_report = PhpAuditor::audit();
+        if php_report.is_php_available {
+            println!("----------------------------------------------------------------");
+            println!(" [PHP GREEN EXTENSION AUDIT]");
+            println!("  Versi PHP       : {}", php_report.php_version);
+            println!("  Total Ekstensi  : {} modules loaded", php_report.loaded_extensions_count);
+            println!("  Zend OPcache    : {}", if php_report.opcache_enabled { "[OK] Aktif (Hemat CPU ~50%)" } else { "[PERINGATAN] Nonaktif (Kompilasi berulang, boros energi!)" });
+            println!("  JIT Compiler    : {}", if php_report.jit_enabled { "[OK] Aktif (Akselerasi instruksi mesin)" } else { "[INFO] Nonaktif" });
+            println!("  Xdebug Status   : {}", if php_report.xdebug_active { "[BAHAYA] Aktif di runtime! (Overhead CPU +200%)" } else { "[OK] Nonaktif (Optimal & ringan)" });
+            if !php_report.recommendations.is_empty() {
+                println!("  Rekomendasi     :");
+                for r in &php_report.recommendations {
+                    println!("   * {}", r);
+                }
+            }
+        }
+    }
+
     let pids = RuntimeDetector::find_pids(lang, port);
     println!("Ditemukan       : {} proses aktif", pids.len());
     println!("----------------------------------------------------------------");
@@ -201,7 +222,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
     println!("----------------------------------------------------------------");
 
     // 1. Static Code Analysis
-    println!("[GreenCode] [1/3] Menjalankan Analisis Kualitas Struktur Kode (Rust Analyzer)...");
+    println!("[GreenCode] [1/4] Menjalankan Analisis Kualitas Struktur Kode (Rust Analyzer)...");
     let targets: Vec<String> = if let Some(arr) = cfg["source_dirs"].as_array() {
         arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()
     } else if let Some(dir) = cfg["source_dir"].as_str() {
@@ -215,8 +236,24 @@ fn cmd_run(config_path: &str, no_open: bool) {
     let q_ov = &quality_report.overview;
     println!("            Files: {} | NCLOC: {} | Avg CCN: {:.2} | MI: {:.1}/100", q_ov.total_files, q_ov.total_ncloc, q_ov.average_ccn_per_file, q_ov.average_maintainability_index);
 
-    // 2. Process Detection
-    println!("[GreenCode] [2/3] Mendeteksi proses server aktif ({runtime})...");
+    // 2. PHP Green Extension & Runtime Audit
+    let php_audit_opt = if runtime == "php" || runtime == "fullstack" || runtime == "auto" {
+        println!("\n[GreenCode] [2/4] Mengaudit PHP Runtime & Green Extensions (OPcache, JIT, Xdebug)...");
+        let rep = PhpAuditor::audit();
+        if rep.is_php_available {
+            println!("            PHP: {} | Extensions: {}", rep.php_version, rep.loaded_extensions_count);
+            println!("            OPcache: {} | Xdebug: {}", 
+                if rep.opcache_enabled { "Aktif [OK]" } else { "Nonaktif [BOROS ENERGI]" },
+                if rep.xdebug_active { "Aktif [OVERHEAD TINGGI]" } else { "Nonaktif [OK]" }
+            );
+        }
+        Some(rep)
+    } else {
+        None
+    };
+
+    // 3. Process Detection
+    println!("\n[GreenCode] [3/4] Mendeteksi proses server aktif ({runtime})...");
     let pids = RuntimeDetector::find_pids(runtime, None);
     if pids.is_empty() {
         println!("[GreenCode] PERINGATAN: Tidak ada proses {} terdeteksi.", runtime.to_uppercase());
@@ -247,7 +284,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
     let engine = ProcessEnergyEngine::new(pids, cpu_tdp);
     let mut attributor = ModuleAttributor::new(&engine);
 
-    println!("\n[GreenCode] [3/3] Memulai profiling runtime {} endpoint...", endpoints_to_trace.len());
+    println!("\n[GreenCode] [4/4] Memulai profiling runtime {} endpoint...", endpoints_to_trace.len());
     for ep in &endpoints_to_trace {
         let url = ep.url.clone().unwrap_or_else(|| {
             if let Some(ref s) = ep.service {
@@ -284,7 +321,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.2.0",
+            "engine": "Rust Native Architecture v1.4.0",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp
         },
@@ -296,6 +333,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
             "avg_latency_ms": (avg_latency * 10.0).round() / 10.0,
             "total_co2e_g": (total_co2e_g * 1000000.0).round() / 1000000.0
         },
+        "php_environment": serde_json::to_value(&php_audit_opt).unwrap_or(json!(null)),
         "correlated_modules": correlated,
         "code_quality": serde_json::to_value(&quality_report).unwrap(),
         "endpoints_detail": attributor.records
@@ -392,7 +430,7 @@ fn main() {
         }
         "ui" => cmd_ui(),
         "version" | "-v" | "--version" => {
-            println!("GreenCode Profiler v1.3.0");
+            println!("GreenCode Profiler v1.4.0");
         }
         "help" | "-h" | "--help" => print_help(),
         other => {
