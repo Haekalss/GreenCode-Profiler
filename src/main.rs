@@ -137,8 +137,8 @@ fn print_no_route_hints(dir: &str) {
     println!("                Cargo.toml / requirements.txt / manage.py)");
     println!("            -> Untuk monorepo, jalankan dari root:");
     println!("                 greencode routes");
-    println!("            -> Atau arahkan ke sub-project:");
-    println!("                 greencode routes ./aptika_fe");
+    println!("            -> Atau arahkan ke sub-project (contoh):");
+    println!("                 greencode routes ./frontend");
 }
 
 fn cmd_init(force: bool, filters: Vec<String>, excludes: Vec<String>) {
@@ -625,9 +625,9 @@ fn print_help() {
     println!("  --filter K   hanya endpoint yang mengandung K (logika OR)");
     println!("  --exclude K  buang endpoint yang mengandung K\n");
     println!("Contoh:");
-    println!("  greencode routes --filter smki");
-    println!("  greencode run --filter smki --exclude admin");
-    println!("  greencode init --filter smki --filter aset --limit 20\n");
+    println!("  greencode routes --filter api");
+    println!("  greencode run --filter api --exclude admin");
+    println!("  greencode init --filter api --filter data --limit 20\n");
 }
 
 fn main() {

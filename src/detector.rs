@@ -497,7 +497,7 @@ impl RouteDiscoverer {
                     pending_prefix = Some(c[1].trim_matches('/').to_string());
                 }
 
-                // Prefix aktif baris ini, mis. "/api" atau "/api/smki/master"
+                // Prefix aktif baris ini, mis. "/api" atau "/api/v1/users"
                 let mut active = String::from(base_prefix);
                 for (_, p) in &prefix_stack {
                     active.push('/');
