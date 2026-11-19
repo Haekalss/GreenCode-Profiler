@@ -202,13 +202,80 @@ impl ReportGenerator {
             }
         }
 
+        let php_env = &report_data["php_environment"];
+        let mut php_section_html = String::new();
+        if !php_env.is_null() && php_env["is_php_available"].as_bool().unwrap_or(false) {
+            let mut ext_rows = String::new();
+            if let Some(exts) = php_env["extension_details"].as_array() {
+                for e in exts {
+                    let badge_style = match e["status_badge"].as_str().unwrap_or("INFO") {
+                        "OK" => "background:#10b981;color:white;",
+                        "WARN" => "background:#f59e0b;color:white;",
+                        "DANGER" => "background:#ef4444;color:white;",
+                        _ => "background:#64748b;color:white;",
+                    };
+                    ext_rows.push_str(&format!(
+                        r#"<tr>
+                            <td style="font-weight:600;">{}</td>
+                            <td style="text-align:center;"><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;{}">{}</span></td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>"#,
+                        e["name"].as_str().unwrap_or(""),
+                        badge_style,
+                        e["status_badge"].as_str().unwrap_or(""),
+                        e["description"].as_str().unwrap_or(""),
+                        e["green_impact"].as_str().unwrap_or("")
+                    ));
+                }
+            }
+
+            let mut rec_items = String::new();
+            if let Some(recs) = php_env["recommendations"].as_array() {
+                for r in recs {
+                    rec_items.push_str(&format!("<li>{}</li>", r.as_str().unwrap_or("")));
+                }
+            }
+
+            php_section_html = format!(
+                r#"<div class="section-title" style="border-left-color:#8b5cf6;">6. Audit PHP Runtime & Green Extensions</div>
+                <div class="desc-box" style="background:#f5f3ff;border-color:#ddd6fe;color:#5b21b6;">
+                    <h3>⚡ Efisiensi Energi Konfigurasi PHP (PHP Extension Health)</h3>
+                    <p style="margin:0 0 10px 0;">Versi Server: <strong>{}</strong> | Ekstensi Terpasang: <strong>{}</strong></p>
+                    <p style="margin:0;">Dalam prinsip Green Software Engineering, penghematan energi server PHP sangat dipengaruhi oleh penggunaan opcode caching (OPcache) dan ketiadaan overhead profiling debug (Xdebug).</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:24%;">Nama Ekstensi</th>
+                            <th style="width:12%;text-align:center;">Status</th>
+                            <th style="width:30%;">Fungsi</th>
+                            <th>Dampak Efisiensi Energi (Green Computing)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {}
+                    </tbody>
+                </table>
+                {}"#,
+                php_env["php_version"].as_str().unwrap_or("PHP"),
+                php_env["loaded_extensions_count"].as_u64().unwrap_or(0),
+                ext_rows,
+                if !rec_items.is_empty() {
+                    format!(r#"<div class="desc-box" style="background:#fffbeb;border-color:#fef3c7;color:#92400e;margin-top:15px;"><h3>💡 Rekomendasi Optimasi Runtime PHP</h3><ul>{}</ul></div>"#, rec_items)
+                } else {
+                    "".to_string()
+                }
+            );
+        }
+
         let html = format!(
             r##"<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenCode Profiler v1.2.0 (Rust Native Engine) Report</title>
+    <title>GreenCode Profiler v1.4.0 (Rust Native Engine) Report</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }}
         .container {{ max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 40px; border: 1px solid #e2e8f0; }}
@@ -390,8 +457,10 @@ impl ReportGenerator {
             </tbody>
         </table>
 
+        {}
+
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.2.0 (Rust Native Architecture)</strong>.<br>
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.4.0 (Rust Native Architecture)</strong>.<br>
             Laporan ini memenuhi standar audit perangkat lunak ramah lingkungan (Green Software Engineering).
         </div>
     </div>
@@ -413,7 +482,8 @@ impl ReportGenerator {
             quality["average_ccn_per_file"],
             quality["total_code_smells"],
             rows_smells,
-            rows_files
+            rows_files,
+            php_section_html
         );
 
         fs::write(p, html)
@@ -475,6 +545,7 @@ impl ReportGenerator {
                 ));
             }
         }
+
 
         let mut rows_smells = String::new();
         if let Some(list) = smells {
@@ -616,7 +687,7 @@ impl ReportGenerator {
         </table>
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.2.0 (Rust Native Architecture)</strong>.
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.4.0 (Rust Native Architecture)</strong>.
         </div>
     </div>
 </body>

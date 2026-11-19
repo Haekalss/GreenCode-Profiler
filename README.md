@@ -10,9 +10,9 @@
 [![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.100+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Runtime: Standalone](https://img.shields.io/badge/Runtime-Zero%20Dependency-10b981.svg)]()
 [![Distribution: NPM](https://img.shields.io/badge/NPM-Launcher-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)
-[![Version](https://img.shields.io/badge/Version-1.3.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
+[![Version](https://img.shields.io/badge/Version-1.4.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
 
-GreenCode Profiler (GCP) adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_) dan arsitektur kode (_Static Code Quality Analysis_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
+GreenCode Profiler (GCP) v1.4.0 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
 
 ---
 
@@ -25,9 +25,10 @@ GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Penggun
 1. **Rust Native Engine:** Menggunakan abstraksi berbiaya nol (_zero-cost abstractions_) dengan konsumsi memori minimal dan kecepatan eksekusi tinggi.
 2. **Isolasi Bias Jaringan (I/O Wait Isolation):** Pengukuran energi didasarkan pada waktu aktif kernel CPU ($t_{\text{user}} + t_{\text{system}}$) melalui Windows NT API (`GetProcessTimes`) dan Linux `/proc/[PID]/stat`, sehingga kebal terhadap latensi koneksi internet atau antrean query basis data.
 3. **Analisis Kualitas Kode Bawaan:** Memeriksa Cyclomatic Complexity (CCN), Maintainability Index (MI), Non-Comment Lines of Code (NCLOC), serta mendeteksi _Architectural Code Smells_ (_God Class_, _Fat Controller_, _Deep Nesting_).
-4. **Dukungan Monorepo & Multi-Service:** Mendeteksi dan memprofil arsitektur monorepo (Frontend Next.js dan Backend Laravel) secara simultan.
-5. **Bahasa-Agnostik:** Bekerja dari luar proses aplikasi target (_external process profiling_). Mendukung Node.js, PHP, Python, Go, dan Rust.
-6. **Laporan HTML Komprehensif:** Menghasilkan dokumen laporan profesional berlatar terang dengan logo tersemat (_offline base64_), indikator ambang batas dinamis, dan deskripsi parameter teknis.
+4. **PHP Runtime & Green Extension Audit:** Mengaudit ketersediaan ekstensi PHP kritis (MySQL, OpenSSL, cURL), akselerator penghemat siklus CPU (_Zend OPcache_, _JIT Compiler_), dan peringatan ekstensi boros daya (_Xdebug_).
+5. **Dukungan Monorepo & Multi-Service:** Mendeteksi dan memprofil arsitektur monorepo (Frontend Next.js dan Backend Laravel) secara simultan.
+6. **Bahasa-Agnostik:** Bekerja dari luar proses aplikasi target (_external process profiling_). Mendukung Node.js, PHP, Python, Go, dan Rust.
+7. **Laporan HTML Komprehensif:** Menghasilkan dokumen laporan profesional berlatar terang dengan logo tersemat (_offline base64_), indikator ambang batas dinamis, rekomendasi runtime PHP, dan deskripsi parameter teknis.
 
 ---
 
@@ -39,7 +40,7 @@ Pilih salah satu metode instalasi yang sesuai dengan alur kerja Anda:
 
 Metode ini **sama sekali tidak membutuhkan instalasi dependensi apapun** (tidak perlu Node.js, Python, atau Rust). Sangat cocok untuk pengguna umum, penguji, atau developer bahasa apapun.
 
-1. Unduh arsip rilis resmi: [GreenCode-v1.3.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
+1. Unduh arsip rilis resmi: [GreenCode-v1.4.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
 2. Ekstrak arsip tersebut untuk mendapatkan berkas `greencode.exe`.
 3. Tempatkan berkas `greencode.exe` di direktori utama (_root_) proyek web yang akan diuji.
 4. Pastikan server aplikasi web Anda sedang berjalan (contoh: port 3000 atau port 8000).
