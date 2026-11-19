@@ -86,9 +86,10 @@ fn cmd_init(force: bool) {
         })
     };
 
-    let discovered = RouteDiscoverer::discover(".", 16);
+    // Baca SEMUA rute (tanpa batas), lalu saring yang aman ditembak otomatis (GET tanpa parameter)
+    let discovered = RouteDiscoverer::profilable(RouteDiscoverer::discover(".", 0));
     if !discovered.is_empty() {
-        println!("[GreenCode] Berhasil mendeteksi {} rute nyata dari project secara otomatis!", discovered.len());
+        println!("[GreenCode] Berhasil mendeteksi {} rute profilable dari project secara otomatis!", discovered.len());
         config["endpoints"] = json!(discovered);
     } else {
         println!("[GreenCode] Menggunakan template default endpoints.");
@@ -241,7 +242,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
     }
 
     if endpoints_to_trace.is_empty() {
-        endpoints_to_trace = RouteDiscoverer::discover(".", 10);
+        endpoints_to_trace = RouteDiscoverer::profilable(RouteDiscoverer::discover(".", 0));
     }
 
     let engine = ProcessEnergyEngine::new(pids, cpu_tdp);
@@ -279,6 +280,40 @@ fn cmd_run(config_path: &str, no_open: bool) {
         0.0
     };
 
+    // 4b. Ringkas untuk laporan: SATU baris per endpoint (rata-rata dari `repeats` run).
+    //     Pengukuran tetap menjalankan `repeats` kali per endpoint di atas;
+    //     hanya tampilan laporan yang tidak mengulang endpoint sebanyak jumlah run.
+    let mut ep_order: Vec<String> = Vec::new();
+    let mut ep_groups: std::collections::HashMap<String, Vec<&attributor::RequestTraceRecord>> =
+        std::collections::HashMap::new();
+    for rec in &attributor.records {
+        let key = format!("{} {}", rec.method, rec.endpoint);
+        if !ep_groups.contains_key(&key) {
+            ep_order.push(key.clone());
+        }
+        ep_groups.entry(key).or_default().push(rec);
+    }
+
+    let mut endpoints_detail: Vec<attributor::RequestTraceRecord> = Vec::new();
+    for key in &ep_order {
+        let list = &ep_groups[key];
+        let n = list.len() as f64;
+        let mean = |f: fn(&attributor::RequestTraceRecord) -> f64| {
+            list.iter().map(|r| f(r)).sum::<f64>() / n
+        };
+        let first = list[0];
+        endpoints_detail.push(attributor::RequestTraceRecord {
+            endpoint: first.endpoint.clone(),
+            method: first.method.clone(),
+            status: first.status,
+            latency_ms: (mean(|r| r.latency_ms) * 10.0).round() / 10.0,
+            cpu_active_time_s: (mean(|r| r.cpu_active_time_s) * 10000.0).round() / 10000.0,
+            energy_total_joules: (mean(|r| r.energy_total_joules) * 1000000.0).round() / 1000000.0,
+            co2e_grams: (mean(|r| r.co2e_grams) * 1000000.0).round() / 1000000.0,
+            cpu_utilization: (mean(|r| r.cpu_utilization) * 10.0).round() / 10.0,
+        });
+    }
+
     let report_data = json!({
         "metadata": {
             "project_name": project_name,
@@ -286,7 +321,9 @@ fn cmd_run(config_path: &str, no_open: bool) {
             "base_url": base_url,
             "engine": "Rust Native Architecture v1.2.0",
             "timestamp": get_simple_timestamp(),
-            "cpu_tdp_watts": cpu_tdp
+            "cpu_tdp_watts": cpu_tdp,
+            "repeats_per_endpoint": repeats,
+            "detail_aggregation": format!("rata-rata dari {} run per endpoint", repeats)
         },
         "totals": {
             "total_requests": attributor.records.len(),
@@ -298,7 +335,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
         },
         "correlated_modules": correlated,
         "code_quality": serde_json::to_value(&quality_report).unwrap(),
-        "endpoints_detail": attributor.records
+        "endpoints_detail": endpoints_detail
     });
 
     let json_path = "reports/greencode_report.json";
@@ -339,7 +376,8 @@ fn print_help() {
     println!("Penggunaan: greencode <command> [options]\n");
     println!("Perintah Utama:");
     println!("  init [--force]        Inisialisasi file konfigurasi greencode.json otomatis");
-    println!("  routes [dir]          Deteksi dan tampilkan rute nyata aplikasi");
+    println!("  routes [dir] [--limit N]  Deteksi rute nyata aplikasi (default: tanpa batas,");
+    println!("                        semua bahasa: Node/PHP/Python/Go/Rust)");
     println!("  detect                Pindai proses server aktif dan PID-nya");
     println!("  analyze [dir]         Analisis kualitas kode statis (CCN, MI, LOC, Smells)");
     println!("  run [config.json]     Jalankan profiling energi dan kualitas kode komprehensif");
@@ -361,12 +399,23 @@ fn main() {
             cmd_init(force);
         }
         "routes" => {
-            let dir = if args.len() > 2 && !args[2].starts_with('-') {
-                &args[2]
-            } else {
-                "."
-            };
-            cmd_routes(dir, 30);
+            // routes [dir] [--limit N] — default: tanpa batas (semua rute terbaca)
+            let mut dir = ".";
+            let mut limit: usize = 0;
+            let mut i = 2;
+            while i < args.len() {
+                if args[i] == "--limit" || args[i] == "-n" {
+                    if i + 1 < args.len() {
+                        limit = args[i + 1].parse().unwrap_or(0);
+                        i += 2;
+                        continue;
+                    }
+                } else if !args[i].starts_with('-') {
+                    dir = &args[i];
+                }
+                i += 1;
+            }
+            cmd_routes(dir, limit);
         }
         "detect" => {
             let lang = if args.len() > 2 { &args[2] } else { "auto" };
