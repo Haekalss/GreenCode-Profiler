@@ -10,9 +10,9 @@
 [![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.100+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Runtime: Standalone](https://img.shields.io/badge/Runtime-Zero%20Dependency-10b981.svg)]()
 [![Distribution: NPM](https://img.shields.io/badge/NPM-Launcher-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)
-[![Version](https://img.shields.io/badge/Version-1.5.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
+[![Version](https://img.shields.io/badge/Version-1.6.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
 
-GreenCode Profiler (GCP) v1.5.0 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
+GreenCode Profiler (GCP) v1.6.0 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
 
 ---
 
@@ -31,6 +31,7 @@ GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Penggun
 7. **Laporan HTML Komprehensif:** Menghasilkan dokumen laporan profesional berlatar terang dengan logo tersemat (_offline base64_), indikator ambang batas dinamis, rekomendasi runtime PHP, dan deskripsi parameter teknis.
 8. **Deteksi Rute Lintas Bahasa Tanpa Batas:** Memindai seluruh rute aplikasi tanpa batas jumlah, termasuk rute bersarang dan _prefix group_, untuk Node.js (Next.js, Express, NestJS), PHP (Laravel), Python (Flask, FastAPI, Django), Go (net/http, gin, chi), dan Rust (axum, actix). Rute berparameter otomatis dikecualikan dari _profiling_ agar tidak menghasilkan HTTP 404.
 9. **Laporan Teragregasi per Endpoint:** Setiap endpoint ditampilkan dalam **satu baris berisi rata-rata** dari seluruh pengulangan pengukuran, sehingga laporan tidak mengulang endpoint sebanyak jumlah run.
+10. **Filter Endpoint (`--filter` / `--exclude`):** Menyaring endpoint berdasarkan kata kunci — boleh diulang (logika OR), cocok tanpa memedulikan huruf besar/kecil pada path maupun nama. Berlaku untuk `routes`, `init`, dan `run`; pada `run` penyaringan dilakukan *in-memory* sehingga `greencode.json` tidak berubah.
 
 ---
 
@@ -42,7 +43,7 @@ Pilih salah satu metode instalasi yang sesuai dengan alur kerja Anda:
 
 Metode ini **sama sekali tidak membutuhkan instalasi dependensi apapun** (tidak perlu Node.js, Python, atau Rust). Sangat cocok untuk pengguna umum, penguji, atau developer bahasa apapun.
 
-1. Unduh arsip rilis resmi: [GreenCode-v1.5.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
+1. Unduh arsip rilis resmi: [GreenCode-v1.6.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
 2. Ekstrak arsip tersebut untuk mendapatkan berkas `greencode.exe`.
 3. Tempatkan berkas `greencode.exe` di direktori utama (_root_) proyek web yang akan diuji.
 4. Pastikan server aplikasi web Anda sedang berjalan (contoh: port 3000 atau port 8000).
@@ -116,10 +117,10 @@ Berkas biner hasil kompilasi tersedia di `target/release/greencode.exe`.
 
 | Perintah            | Parameter                   | Deskripsi                                                                |
 | ------------------- | --------------------------- | ------------------------------------------------------------------------ |
-| `greencode init`    | `[--force]`                 | Membuat berkas konfigurasi `greencode.json` dengan deteksi rute otomatis |
-| `greencode run`     | `[config.json] [--no-open]` | Menjalankan profiling energi runtime dan analisis kualitas struktur kode |
+| `greencode init`    | `[--force] [--filter K] [--exclude K]` | Membuat `greencode.json` dengan deteksi rute otomatis (tersaring) |
+| `greencode run`     | `[config.json] [--no-open] [--filter K] [--exclude K]` | Menjalankan profiling energi dan kualitas struktur kode |
 | `greencode analyze` | `[dir] [--no-open]`         | Menjalankan analisis kualitas kode statis (NCLOC, CCN, MI, Smells)       |
-| `greencode routes`  | `[dir] [--limit N]`         | Memindai seluruh rute nyata dari kode sumber (semua bahasa; `--limit` membatasi jumlah) |
+| `greencode routes`  | `[dir] [--limit N] [--filter K] [--exclude K]` | Memindai seluruh rute nyata dari kode sumber (semua bahasa; `--limit` membatasi jumlah) |
 | `greencode detect`  | `[language]`                | Memindai proses server aktif beserta nomor Process ID (PID) dan port     |
 | `greencode ui`      | -                           | Membuka laporan dashboard HTML hasil profiling terakhir di peramban      |
 | `greencode version` | -                           | Menampilkan informasi versi dan arsitektur engine                        |

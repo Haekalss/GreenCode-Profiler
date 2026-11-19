@@ -5,7 +5,7 @@ import sys
 # Script wrapper yang memanggil bin/greencode.exe atau bin/greencode
 setup(
     name="greencode-profiler",
-    version="1.5.0",
+    version="1.6.0",
     description="Universal Process-Level Energy Profiler & Code Quality Analyzer",
     author="GreenCode Team",
     license="MIT",

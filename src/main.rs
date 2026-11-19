@@ -1,4 +1,4 @@
-//! GreenCode Profiler v1.5.0 - Rust Native Architecture
+//! GreenCode Profiler v1.6.0 - Rust Native Architecture
 //! Universal Process-Level Energy Profiler & Green-Maintainability Framework
 
 mod analyzer;
@@ -23,7 +23,7 @@ use std::path::Path;
 
 fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.5.0 (Rust Native Architecture)         ");
+    println!("   GREENCODE PROFILER v1.6.0 (Rust Native Architecture)         ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -37,7 +37,111 @@ fn get_simple_timestamp() -> String {
     format!("2026-11-16 {:02}:{:02}:{:02} WIB", hours, mins, secs)
 }
 
-fn cmd_init(force: bool) {
+// ============================ CLI FLAGS ============================
+
+/// Flag CLI yang didukung lintas perintah.
+/// `--filter` dan `--exclude` BOLEH diulang (logika OR untuk filter,
+/// dan semua ketentuan exclude harus lolos).
+#[derive(Debug, Default)]
+struct CliFlags {
+    /// Argumen posisional (mis. `dir` pada `routes`, `config` pada `run`)
+    positional: Vec<String>,
+    /// `--limit N` — batasi jumlah rute (0 = tanpa batas)
+    limit: usize,
+    /// `-f` / `--force`
+    force: bool,
+    /// `--no-open`
+    no_open: bool,
+    /// `--filter <kata>` — boleh diulang
+    filters: Vec<String>,
+    /// `--exclude <kata>` — boleh diulang
+    excludes: Vec<String>,
+}
+
+impl CliFlags {
+    fn has_filter(&self) -> bool {
+        !self.filters.is_empty() || !self.excludes.is_empty()
+    }
+}
+
+/// Parse flag dari sisa argumen setelah nama perintah.
+fn parse_flags(args: &[String]) -> CliFlags {
+    let mut f = CliFlags::default();
+    let mut i = 0;
+    while i < args.len() {
+        let a = args[i].as_str();
+        match a {
+            "--limit" | "-n" => {
+                if i + 1 < args.len() {
+                    f.limit = args[i + 1].parse().unwrap_or(0);
+                    i += 2;
+                    continue;
+                }
+            }
+            "--filter" | "-F" => {
+                if i + 1 < args.len() {
+                    f.filters.push(args[i + 1].clone());
+                    i += 2;
+                    continue;
+                }
+            }
+            "--exclude" | "-X" => {
+                if i + 1 < args.len() {
+                    f.excludes.push(args[i + 1].clone());
+                    i += 2;
+                    continue;
+                }
+            }
+            "--force" | "-f" => f.force = true,
+            "--no-open" => f.no_open = true,
+            _ => {
+                if !a.starts_with('-') {
+                    f.positional.push(a.to_string());
+                } else {
+                    println!("[GreenCode] Flag tidak dikenal diabaikan: {}", a);
+                }
+            }
+        }
+        i += 1;
+    }
+    f
+}
+
+/// Terapkan `--filter` (OR) dan `--exclude` pada daftar endpoint.
+/// Pencocokan case-insensitive substring terhadap `path` DAN `name`.
+fn apply_filters(
+    routes: Vec<detector::RouteEndpoint>,
+    filters: &[String],
+    excludes: &[String],
+) -> Vec<detector::RouteEndpoint> {
+    if filters.is_empty() && excludes.is_empty() {
+        return routes;
+    }
+    routes
+        .into_iter()
+        .filter(|r| {
+            let hay = format!("{} {}", r.path, r.name).to_lowercase();
+            let pass_filter =
+                filters.is_empty() || filters.iter().any(|f| hay.contains(&f.to_lowercase()));
+            let pass_exclude = !excludes.iter().any(|e| hay.contains(&e.to_lowercase()));
+            pass_filter && pass_exclude
+        })
+        .collect()
+}
+
+/// Pesan bantuan ketika discovery tidak menemukan rute sama sekali.
+fn print_no_route_hints(dir: &str) {
+    println!("[GreenCode] 0 rute ditemukan di '{}'.", dir);
+    println!("            -> Tidak ada penanda project di folder ini");
+    println!("               (package.json / composer.json / go.mod /");
+    println!("                Cargo.toml / requirements.txt / manage.py)");
+    println!("            -> Untuk monorepo, jalankan dari root:");
+    println!("                 greencode routes");
+    println!("            -> Atau arahkan ke sub-project:");
+    println!("                 greencode routes ./aptika_fe");
+}
+
+fn cmd_init(force: bool, filters: Vec<String>, excludes: Vec<String>) {
     let ecosystem = RuntimeDetector::detect_project_ecosystem(".");
     println!("[GreenCode] Mendeteksi ekosistem project: {}", ecosystem.to_uppercase());
 
@@ -88,11 +192,34 @@ fn cmd_init(force: bool) {
         })
     };
 
-    // Baca SEMUA rute (tanpa batas), lalu saring yang aman ditembak otomatis (GET tanpa parameter)
-    let discovered = RouteDiscoverer::profilable(RouteDiscoverer::discover(".", 0));
+    // Baca SEMUA rute (tanpa batas), saring yang aman ditembak otomatis
+    // (GET tanpa parameter), lalu terapkan --filter / --exclude bila ada.
+    let all_profilable = RouteDiscoverer::profilable(RouteDiscoverer::discover(".", 0));
+    let total_before = all_profilable.len();
+    let discovered = apply_filters(all_profilable, &filters, &excludes);
+
     if !discovered.is_empty() {
-        println!("[GreenCode] Berhasil mendeteksi {} rute profilable dari project secara otomatis!", discovered.len());
+        if filters.is_empty() && excludes.is_empty() {
+            println!(
+                "[GreenCode] Berhasil mendeteksi {} rute profilable dari project secara otomatis!",
+                discovered.len()
+            );
+        } else {
+            println!(
+                "[GreenCode] {} rute profilable cocok dengan filter (dari {} di seluruh project).",
+                discovered.len(),
+                total_before
+            );
+        }
         config["endpoints"] = json!(discovered);
+    } else if total_before > 0 {
+        // Ada rute, tapi tidak ada yang cocok dengan filter
+        println!(
+            "[GreenCode] 0 rute cocok dengan --filter/--exclude (padahal ada {} rute profilable).",
+            total_before
+        );
+        println!("            Periksa kembali kata kunci, atau jalankan 'greencode routes' untuk melihat daftar.");
+        return;
     } else {
         println!("[GreenCode] Menggunakan template default endpoints.");
         config["endpoints"] = json!([
@@ -113,15 +240,58 @@ fn cmd_init(force: bool) {
     }
 }
 
-fn cmd_routes(path: &str, limit: usize) {
+fn cmd_routes(path: &str, flags: &CliFlags) {
     println!("================================================================");
     println!("      GREENCODE AUTOMATIC ROUTE DISCOVERY (Rust Engine)         ");
     println!("================================================================");
+
+    // Validasi path sejak awal: error yang jelas, bukan diam-diam 0 rute.
+    if !Path::new(path).exists() {
+        println!("[GreenError] Folder tidak ditemukan: {}", path);
+        println!("            Periksa kembali path, atau jalankan dari root monorepo:");
+        println!("              greencode routes");
+        println!("================================================================\n");
+        return;
+    }
+
     println!("Direktori Target : {}", std::fs::canonicalize(path).unwrap_or_else(|_| path.into()).display());
 
-    let routes = RouteDiscoverer::discover(path, limit);
-    println!("Total Ditemukan  : {} rute nyata", routes.len());
+    let all_routes = RouteDiscoverer::discover(path, flags.limit);
+    if all_routes.is_empty() {
+        println!("Total Ditemukan  : 0 rute nyata");
+        println!("----------------------------------------------------------------");
+        print_no_route_hints(path);
+        println!("================================================================\n");
+        return;
+    }
+
+    let total_before = all_routes.len();
+    let routes = apply_filters(all_routes, &flags.filters, &flags.excludes);
+
+    println!(
+        "Total Ditemukan  : {} rute nyata{}",
+        routes.len(),
+        if flags.has_filter() {
+            format!(" (disaring dari {})", total_before)
+        } else {
+            String::new()
+        }
+    );
     println!("----------------------------------------------------------------");
+
+    if routes.is_empty() {
+        println!("[GreenCode] 0 rute cocok dengan --filter / --exclude.");
+        println!("            Kata kunci yang dipakai:");
+        for f in &flags.filters {
+            println!("              --filter {}", f);
+        }
+        for x in &flags.excludes {
+            println!("              --exclude {}", x);
+        }
+        println!("================================================================\n");
+        return;
+    }
+
     for r in routes {
         let s_tag = r.service.map(|s| format!("[{}] ", s.to_uppercase())).unwrap_or_default();
         println!(" - [{:<4}] {}{:<35} ({})", r.method, s_tag, r.path, r.name);
@@ -199,7 +369,7 @@ fn cmd_analyze(target_path: &str, no_open: bool) {
     }
 }
 
-fn cmd_run(config_path: &str, no_open: bool) {
+fn cmd_run(config_path: &str, flags: CliFlags) {
     if !Path::new(config_path).exists() {
         println!("[GreenCode] Berkas konfigurasi '{}' tidak ditemukan.", config_path);
         println!("            Jalankan 'greencode init' untuk membuatnya otomatis.");
@@ -282,6 +452,32 @@ fn cmd_run(config_path: &str, no_open: bool) {
         endpoints_to_trace = RouteDiscoverer::profilable(RouteDiscoverer::discover(".", 0));
     }
 
+    // Terapkan --filter / --exclude terhadap isi config secara IN-MEMORY.
+    // Config tidak diubah, jadi bisa dipakai ulang untuk audit penuh.
+    let total_in_config = endpoints_to_trace.len();
+    endpoints_to_trace = apply_filters(endpoints_to_trace, &flags.filters, &flags.excludes);
+
+    if flags.has_filter() {
+        println!(
+            "[GreenCode] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
+            endpoints_to_trace.len(),
+            total_in_config,
+            config_path
+        );
+        if endpoints_to_trace.is_empty() {
+            println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
+            println!("            Kata kunci yang dipakai:");
+            for f in &flags.filters {
+                println!("              --filter {}", f);
+            }
+            for x in &flags.excludes {
+                println!("              --exclude {}", x);
+            }
+            println!("            Jalankan 'greencode routes' untuk melihat daftar endpoint.");
+            return;
+        }
+    }
+
     let engine = ProcessEnergyEngine::new(pids, cpu_tdp);
     let mut attributor = ModuleAttributor::new(&engine);
 
@@ -356,7 +552,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.5.0",
+            "engine": "Rust Native Architecture v1.6.0",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp,
             "repeats_per_endpoint": repeats,
@@ -390,7 +586,7 @@ fn cmd_run(config_path: &str, no_open: bool) {
     println!(" - HTML : {}", std::fs::canonicalize(html_path).unwrap_or_else(|_| html_path.into()).display());
     println!("================================================================\n");
 
-    if !no_open {
+    if !flags.no_open {
         ReportGenerator::open_in_browser(html_path);
     }
 }
@@ -413,15 +609,25 @@ fn print_help() {
     print_banner();
     println!("Penggunaan: greencode <command> [options]\n");
     println!("Perintah Utama:");
-    println!("  init [--force]        Inisialisasi file konfigurasi greencode.json otomatis");
-    println!("  routes [dir] [--limit N]  Deteksi rute nyata aplikasi (default: tanpa batas,");
-    println!("                        semua bahasa: Node/PHP/Python/Go/Rust)");
+    println!("  init [--force] [--filter K] [--exclude K]");
+    println!("                        Inisialisasi greencode.json + deteksi rute otomatis");
+    println!("  routes [dir] [--limit N] [--filter K] [--exclude K]");
+    println!("                        Deteksi rute nyata (default: tanpa batas, semua");
+    println!("                        bahasa: Node/PHP/Python/Go/Rust)");
     println!("  detect                Pindai proses server aktif dan PID-nya");
     println!("  analyze [dir]         Analisis kualitas kode statis (CCN, MI, LOC, Smells)");
-    println!("  run [config.json]     Jalankan profiling energi dan kualitas kode komprehensif");
+    println!("  run [config.json] [--no-open] [--filter K] [--exclude K]");
+    println!("                        Jalankan profiling energi dan kualitas kode");
     println!("  ui                    Buka laporan HTML di peramban web");
     println!("  version               Tampilkan versi GreenCode Profiler");
     println!("  help                  Tampilkan panduan bantuan ini\n");
+    println!("Filter (boleh diulang, cocok case-insensitive pada path & nama):");
+    println!("  --filter K   hanya endpoint yang mengandung K (logika OR)");
+    println!("  --exclude K  buang endpoint yang mengandung K\n");
+    println!("Contoh:");
+    println!("  greencode routes --filter smki");
+    println!("  greencode run --filter smki --exclude admin");
+    println!("  greencode init --filter smki --filter aset --limit 20\n");
 }
 
 fn main() {
@@ -433,27 +639,19 @@ fn main() {
 
     match args[1].as_str() {
         "init" => {
-            let force = args.iter().any(|a| a == "-f" || a == "--force");
-            cmd_init(force);
+            // init [--force] [--filter kata]... [--exclude kata]...
+            let flags = parse_flags(&args[2..]);
+            cmd_init(flags.force, flags.filters, flags.excludes);
         }
         "routes" => {
-            // routes [dir] [--limit N] — default: tanpa batas (semua rute terbaca)
-            let mut dir = ".";
-            let mut limit: usize = 0;
-            let mut i = 2;
-            while i < args.len() {
-                if args[i] == "--limit" || args[i] == "-n" {
-                    if i + 1 < args.len() {
-                        limit = args[i + 1].parse().unwrap_or(0);
-                        i += 2;
-                        continue;
-                    }
-                } else if !args[i].starts_with('-') {
-                    dir = &args[i];
-                }
-                i += 1;
-            }
-            cmd_routes(dir, limit);
+            // routes [dir] [--limit N] [--filter kata]... [--exclude kata]...
+            let flags = parse_flags(&args[2..]);
+            let dir = flags
+                .positional
+                .first()
+                .cloned()
+                .unwrap_or_else(|| ".".to_string());
+            cmd_routes(&dir, &flags);
         }
         "detect" => {
             let lang = if args.len() > 2 { &args[2] } else { "auto" };
@@ -469,17 +667,18 @@ fn main() {
             cmd_analyze(target, no_open);
         }
         "run" => {
-            let config = if args.len() > 2 && !args[2].starts_with('-') {
-                &args[2]
-            } else {
-                "greencode.json"
-            };
-            let no_open = args.iter().any(|a| a == "--no-open");
-            cmd_run(config, no_open);
+            // run [config.json] [--no-open] [--filter kata]... [--exclude kata]...
+            let flags = parse_flags(&args[2..]);
+            let config = flags
+                .positional
+                .first()
+                .cloned()
+                .unwrap_or_else(|| "greencode.json".to_string());
+            cmd_run(&config, flags);
         }
         "ui" => cmd_ui(),
         "version" | "-v" | "--version" => {
-            println!("GreenCode Profiler v1.5.0");
+            println!("GreenCode Profiler v1.6.0");
         }
         "help" | "-h" | "--help" => print_help(),
         other => {
