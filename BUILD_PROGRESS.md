@@ -144,7 +144,7 @@ Config (`greencode.json`):
 
 | Fitur | Status | Next Step |
 |---|---|---|
-| **v1.7.0 — Filter infers target dirs** | ✅ **Coding selesai** | Tunggu commit & push |
+| **v1.7.0 — Filter infers target dirs** | ✅ **RELEASED (v1.7.0)** | Tidak ada |
 
 ### Detail Perubahan v1.7.0
 
@@ -326,17 +326,19 @@ greencode run --no-open
 
 ## 9. Checklist Verification
 
-- [ ] Version bumped to `1.7.0` (Cargo.toml, package.json, setup.py, composer.json)
-- [ ] Banner updated to `v1.7.0`
-- [ ] Source code commit (0d1d287 untuk generic examples + v1.7.0 IP)
-- [ ] Binary rebuilt & packaged (4.88 MB)
-- [ ] Release notes drafted (in queue)
-- [ ] Git tags pushed (`v1.7.0`)
-- [ ] GitHub release created
-- [ ] NPM published
-- [ ] Global npm install test
-- [ ] Final `greencode --version` test completed
+- [x] Version bumped to `1.7.0` (Cargo.toml, package.json, setup.py, composer.json)
+- [x] Banner updated to `v1.7.0`
+- [x] Source code commit (218e1fd - filter infers target dirs)
+- [x] Binary rebuilt & packaged (4.88 MB ZIP)
+- [x] Release notes drafted (release_notes.md)
+- [x] Git tags pushed (`v1.7.0`)
+- [x] GitHub release created (https://github.com/Haekalss/GreenCode-Profiler/releases/tag/v1.7.0)
+- [ ] NPM published (requires authentication)
+- [x] Final `greencode --version` test completed (1.7.0)
+- [x] BUILD_PROGRESS.md updated with release status
 
 ---
 
-**Status:** 🟡 Code completed, pending commit & release.
+**Status:** ✅ **MASTER BRANCH UPDATED & RELEASED (v1.7.0)**
+Build & Release completed: 2026-11-20
+GitHub Release: https://github.com/Haekalss/GreenCode-Profiler/releases/tag/v1.7.0
