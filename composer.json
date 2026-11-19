@@ -1,6 +1,6 @@
 {
     "name": "greencode/profiler",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "description": "GreenCode Profiler - Process-Level Energy Profiler & Code Quality Analyzer",
     "type": "library",
     "license": "MIT",

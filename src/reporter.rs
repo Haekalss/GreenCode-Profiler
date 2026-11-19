@@ -275,7 +275,7 @@ impl ReportGenerator {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenCode Profiler v1.6.0 (Rust Native Engine) Report</title>
+    <title>GreenCode Profiler v1.7.0 (Rust Native Engine) Report</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }}
         .container {{ max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 40px; border: 1px solid #e2e8f0; }}
@@ -460,7 +460,7 @@ impl ReportGenerator {
         {}
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.6.0 (Rust Native Architecture)</strong>.<br>
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.0 (Rust Native Architecture)</strong>.<br>
             Laporan ini memenuhi standar audit perangkat lunak ramah lingkungan (Green Software Engineering).
         </div>
     </div>
@@ -687,7 +687,7 @@ impl ReportGenerator {
         </table>
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.6.0 (Rust Native Architecture)</strong>.
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.0 (Rust Native Architecture)</strong>.
         </div>
     </div>
 </body>

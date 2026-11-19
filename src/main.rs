@@ -1,4 +1,4 @@
-//! GreenCode Profiler v1.6.0 - Rust Native Architecture
+//! GreenCode Profiler v1.7.0 - Rust Native Architecture
 //! Universal Process-Level Energy Profiler & Green-Maintainability Framework
 
 mod analyzer;
@@ -23,7 +23,7 @@ use std::path::Path;
 
 fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.6.0 (Rust Native Architecture)         ");
+    println!("   GREENCODE PROFILER v1.7.0 (Rust Native Architecture)         ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -392,17 +392,86 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
     println!("Repeats  : {}x per endpoint", repeats);
     println!("----------------------------------------------------------------");
 
-    // 1. Static Code Analysis
-    println!("[GreenCode] [1/4] Menjalankan Analisis Kualitas Struktur Kode (Rust Analyzer)...");
-    let targets: Vec<String> = if let Some(arr) = cfg["source_dirs"].as_array() {
-        arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()
-    } else if let Some(dir) = cfg["source_dir"].as_str() {
-        vec![dir.to_string()]
+    // Baca endpoint dari config DULU, sebelum static analysis
+    let mut endpoints_from_config: Vec<detector::RouteEndpoint> = Vec::new();
+    if let Some(eps) = cfg["endpoints"].as_array() {
+        for ep in eps {
+            endpoints_from_config.push(detector::RouteEndpoint {
+                path: ep["path"].as_str().unwrap_or("/").to_string(),
+                name: ep["name"].as_str().unwrap_or("").to_string(),
+                method: ep["method"].as_str().unwrap_or("GET").to_string(),
+                service: ep["service"].as_str().map(|s| s.to_string()),
+                base_url: ep["base_url"].as_str().map(|s| s.to_string()),
+                url: ep["url"].as_str().map(|s| s.to_string()),
+            });
+        }
+    }
+
+    // Terapkan --filter / --exclude SEKARANG (sebelum static analysis)
+    let total_endpoints_before_filter = endpoints_from_config.len();
+    endpoints_from_config = apply_filters(endpoints_from_config, &flags.filters, &flags.excludes);
+
+    if flags.has_filter() {
+        println!(
+            "[GreenCode] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
+            endpoints_from_config.len(),
+            total_endpoints_before_filter,
+            config_path
+        );
+        if endpoints_from_config.is_empty() {
+            println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
+            println!("            Kata kunci yang dipakai:");
+            for f in &flags.filters {
+                println!("              --filter {}", f);
+            }
+            for x in &flags.excludes {
+                println!("              --exclude {}", x);
+            }
+            println!("            Jalankan 'greencode routes' untuk melihat daftar endpoint.");
+            return;
+        }
+    }
+
+    // Infer target dirs untuk static analysis dari endpoint yang tersisa
+    // Jika ada filter, hanya scan source_dir yang relevan dengan service endpoint tersisa
+    let inferred_targets: Vec<String> = if flags.has_filter() {
+        let mut dirs = std::collections::HashSet::new();
+        for ep in &endpoints_from_config {
+            if let Some(ref svc) = ep.service {
+                // Cari source_dir dari config berdasarkan service
+                if let Some(arr) = cfg["source_dirs"].as_array() {
+                    if let Some(services) = cfg["services"].as_object() {
+                        if services.contains_key(svc) {
+                            // Cocokkan service dengan source_dir berdasarkan urutan key
+                            let services_keys: Vec<String> = services.keys().cloned().collect();
+                            if let Some(idx) = services_keys.iter().position(|k| k == svc) {
+                                if let Some(dir) = arr.get(idx).and_then(|v| v.as_str()) {
+                                    dirs.insert(dir.to_string());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        dirs.into_iter().collect()
     } else {
-        vec![".".to_string()]
+        // Tanpa filter: pakai semua source_dirs seperti biasa
+        if let Some(arr) = cfg["source_dirs"].as_array() {
+            arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()
+        } else if let Some(dir) = cfg["source_dir"].as_str() {
+            vec![dir.to_string()]
+        } else {
+            vec![".".to_string()]
+        }
     };
 
-    let analyzer = CodeQualityAnalyzer::new(targets);
+    // 1. Static Code Analysis
+    println!("[GreenCode] [1/4] Menjalankan Analisis Kualitas Struktur Kode (Rust Analyzer)...");
+    if flags.has_filter() && !inferred_targets.is_empty() {
+        println!("            Target direktori (dari filter): {}", inferred_targets.join(", "));
+    }
+    let analyzer = CodeQualityAnalyzer::new(inferred_targets);
     let quality_report = analyzer.run_analysis();
     let q_ov = &quality_report.overview;
     println!("            Files: {} | NCLOC: {} | Avg CCN: {:.2} | MI: {:.1}/100", q_ov.total_files, q_ov.total_ncloc, q_ov.average_ccn_per_file, q_ov.average_maintainability_index);
@@ -433,50 +502,8 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
     }
     println!("[GreenCode] Terhubung ke {} proses aktif: PID {:?}", pids.len(), pids);
 
-    // 3. Dynamic HTTP Profiling
-    let mut endpoints_to_trace: Vec<detector::RouteEndpoint> = Vec::new();
-    if let Some(eps) = cfg["endpoints"].as_array() {
-        for ep in eps {
-            endpoints_to_trace.push(detector::RouteEndpoint {
-                path: ep["path"].as_str().unwrap_or("/").to_string(),
-                name: ep["name"].as_str().unwrap_or("").to_string(),
-                method: ep["method"].as_str().unwrap_or("GET").to_string(),
-                service: ep["service"].as_str().map(|s| s.to_string()),
-                base_url: ep["base_url"].as_str().map(|s| s.to_string()),
-                url: ep["url"].as_str().map(|s| s.to_string()),
-            });
-        }
-    }
-
-    if endpoints_to_trace.is_empty() {
-        endpoints_to_trace = RouteDiscoverer::profilable(RouteDiscoverer::discover(".", 0));
-    }
-
-    // Terapkan --filter / --exclude terhadap isi config secara IN-MEMORY.
-    // Config tidak diubah, jadi bisa dipakai ulang untuk audit penuh.
-    let total_in_config = endpoints_to_trace.len();
-    endpoints_to_trace = apply_filters(endpoints_to_trace, &flags.filters, &flags.excludes);
-
-    if flags.has_filter() {
-        println!(
-            "[GreenCode] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
-            endpoints_to_trace.len(),
-            total_in_config,
-            config_path
-        );
-        if endpoints_to_trace.is_empty() {
-            println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
-            println!("            Kata kunci yang dipakai:");
-            for f in &flags.filters {
-                println!("              --filter {}", f);
-            }
-            for x in &flags.excludes {
-                println!("              --exclude {}", x);
-            }
-            println!("            Jalankan 'greencode routes' untuk melihat daftar endpoint.");
-            return;
-        }
-    }
+    // Gunakan endpoint yang sudah difilter di atas (untuk static analysis)
+    let endpoints_to_trace = endpoints_from_config;
 
     let engine = ProcessEnergyEngine::new(pids, cpu_tdp);
     let mut attributor = ModuleAttributor::new(&engine);
@@ -552,7 +579,7 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.6.0",
+            "engine": "Rust Native Architecture v1.7.0",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp,
             "repeats_per_endpoint": repeats,
@@ -678,7 +705,7 @@ fn main() {
         }
         "ui" => cmd_ui(),
         "version" | "-v" | "--version" => {
-            println!("GreenCode Profiler v1.6.0");
+            println!("GreenCode Profiler v1.7.0");
         }
         "help" | "-h" | "--help" => print_help(),
         other => {
