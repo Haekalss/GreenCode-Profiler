@@ -1,4 +1,4 @@
-//! GreenCode Profiler v1.7.0 - Rust Native Architecture
+//! GreenCode Profiler v1.7.1 - Rust Native Architecture
 //! Universal Process-Level Energy Profiler & Green-Maintainability Framework
 
 mod analyzer;
@@ -23,7 +23,7 @@ use std::path::Path;
 
 fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.7.0 (Rust Native Architecture)         ");
+    println!("   GREENCODE PROFILER v1.7.1 (Rust Native Architecture)         ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -334,13 +334,124 @@ fn cmd_detect(lang: &str, port: Option<u16>) {
     println!("================================================================\n");
 }
 
-fn cmd_analyze(target_path: &str, no_open: bool) {
+fn cmd_analyze(flags: CliFlags) {
+    // Tentukan config file (default greencode.json)
+    let config_path = flags.positional.first().cloned().unwrap_or_else(|| "greencode.json".to_string());
+    let no_open = flags.no_open;
+
+    let mut inferred_targets: Vec<String> = Vec::new();
+    let mut has_config = false;
+
+    // Coba baca config untuk filter inference
+    if Path::new(&config_path).exists() {
+        let cfg_str = fs::read_to_string(&config_path).unwrap_or_default();
+        let cfg: Value = serde_json::from_str(&cfg_str).unwrap_or(json!({}));
+
+        // Baca endpoint dari config
+        let mut endpoints_from_config: Vec<detector::RouteEndpoint> = Vec::new();
+        if let Some(eps) = cfg["endpoints"].as_array() {
+            for ep in eps {
+                endpoints_from_config.push(detector::RouteEndpoint {
+                    path: ep["path"].as_str().unwrap_or("/").to_string(),
+                    name: ep["name"].as_str().unwrap_or("").to_string(),
+                    method: ep["method"].as_str().unwrap_or("GET").to_string(),
+                    service: ep["service"].as_str().map(|s| s.to_string()),
+                    base_url: ep["base_url"].as_str().map(|s| s.to_string()),
+                    url: ep["url"].as_str().map(|s| s.to_string()),
+                });
+            }
+        }
+
+        // Terapkan --filter / --exclude
+        let total_endpoints_before_filter = endpoints_from_config.len();
+        endpoints_from_config = apply_filters(endpoints_from_config, &flags.filters, &flags.excludes);
+
+        if flags.has_filter() {
+            println!(
+                "[GreenCode] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
+                endpoints_from_config.len(),
+                total_endpoints_before_filter,
+                config_path
+            );
+            if endpoints_from_config.is_empty() {
+                println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
+                println!("            Kata kunci yang dipakai:");
+                for f in &flags.filters {
+                    println!("              --filter {}", f);
+                }
+                for x in &flags.excludes {
+                    println!("              --exclude {}", x);
+                }
+                println!("            Jalankan 'greencode routes' untuk melihat daftar endpoint.");
+                return;
+            }
+        }
+
+        // Infer target dirs dari endpoint yang tersisa (sama seperti cmd_run)
+        if flags.has_filter() {
+            let mut dirs = std::collections::HashSet::new();
+            for ep in &endpoints_from_config {
+                match ep.service.as_deref() {
+                    Some("frontend") => {
+                        if let Some(arr) = cfg["source_dirs"].as_array() {
+                            for dir in arr.iter().filter_map(|v| v.as_str()) {
+                                dirs.insert(dir.to_string());
+                            }
+                        }
+                    }
+                    Some("backend") => {
+                        if let Some(arr) = cfg["source_dirs"].as_array() {
+                            for dir in arr.iter().filter_map(|v| v.as_str()) {
+                                dirs.insert(dir.to_string());
+                            }
+                        }
+                    }
+                    Some(svc) => {
+                        if let Some(arr) = cfg["source_dirs"].as_array() {
+                            for dir in arr.iter().filter_map(|v| v.as_str()) {
+                                if dir.contains(svc) || svc.contains(dir) {
+                                    dirs.insert(dir.to_string());
+                                }
+                            }
+                        }
+                    }
+                    None => {}
+                }
+            }
+            inferred_targets = dirs.into_iter().collect();
+        } else {
+            // Tanpa filter: pakai semua source_dirs
+            if let Some(arr) = cfg["source_dirs"].as_array() {
+                inferred_targets = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+            } else if let Some(dir) = cfg["source_dir"].as_str() {
+                inferred_targets = vec![dir.to_string()];
+            }
+        }
+        has_config = true;
+    }
+
+    // Fallback: jika tidak ada config atau tidak ada inferred targets, pakai positional arg
+    if inferred_targets.is_empty() {
+        let target = if flags.positional.len() > 1 && !flags.positional[1].starts_with('-') {
+            &flags.positional[1]
+        } else {
+            "."
+        };
+        inferred_targets = vec![target.to_string()];
+    }
+
     println!("================================================================");
     println!("   GREENCODE STATIC CODE QUALITY ANALYZER (Rust Native)         ");
     println!("================================================================");
-    println!("Scanning Directory : {}", std::fs::canonicalize(target_path).unwrap_or_else(|_| target_path.into()).display());
+    if flags.has_filter() && has_config {
+        println!("Target direktori (dari filter): {}", inferred_targets.join(", "));
+    } else {
+        for t in &inferred_targets {
+            println!("Scanning Directory : {}", std::fs::canonicalize(t).unwrap_or_else(|_| t.into()).display());
+        }
+    }
 
-    let analyzer = CodeQualityAnalyzer::new(vec![target_path]);
+    let analyzer = CodeQualityAnalyzer::new(inferred_targets);
     let report = analyzer.run_analysis();
     let ov = &report.overview;
 
@@ -437,21 +548,34 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
     let inferred_targets: Vec<String> = if flags.has_filter() {
         let mut dirs = std::collections::HashSet::new();
         for ep in &endpoints_from_config {
-            if let Some(ref svc) = ep.service {
-                // Cari source_dir dari config berdasarkan service
-                if let Some(arr) = cfg["source_dirs"].as_array() {
-                    if let Some(services) = cfg["services"].as_object() {
-                        if services.contains_key(svc) {
-                            // Cocokkan service dengan source_dir berdasarkan urutan key
-                            let services_keys: Vec<String> = services.keys().cloned().collect();
-                            if let Some(idx) = services_keys.iter().position(|k| k == svc) {
-                                if let Some(dir) = arr.get(idx).and_then(|v| v.as_str()) {
-                                    dirs.insert(dir.to_string());
-                                }
+            match ep.service.as_deref() {
+                Some("frontend") => {
+                    // Scan semua frontend source dirs
+                    if let Some(arr) = cfg["source_dirs"].as_array() {
+                        for dir in arr.iter().filter_map(|v| v.as_str()) {
+                            dirs.insert(dir.to_string());
+                        }
+                    }
+                }
+                Some("backend") => {
+                    // Scan semua backend source dirs
+                    if let Some(arr) = cfg["source_dirs"].as_array() {
+                        for dir in arr.iter().filter_map(|v| v.as_str()) {
+                            dirs.insert(dir.to_string());
+                        }
+                    }
+                }
+                Some(svc) => {
+                    // Cocokkan service dengan nama source_dir (exact match)
+                    if let Some(arr) = cfg["source_dirs"].as_array() {
+                        for dir in arr.iter().filter_map(|v| v.as_str()) {
+                            if dir.contains(svc) || svc.contains(dir) {
+                                dirs.insert(dir.to_string());
                             }
                         }
                     }
                 }
+                None => {}
             }
         }
         dirs.into_iter().collect()
@@ -579,7 +703,7 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.7.0",
+            "engine": "Rust Native Architecture v1.7.1",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp,
             "repeats_per_endpoint": repeats,
@@ -685,13 +809,8 @@ fn main() {
             cmd_detect(lang, None);
         }
         "analyze" => {
-            let target = if args.len() > 2 && !args[2].starts_with('-') {
-                &args[2]
-            } else {
-                "."
-            };
-            let no_open = args.iter().any(|a| a == "--no-open");
-            cmd_analyze(target, no_open);
+            let flags = parse_flags(&args[2..]);
+            cmd_analyze(flags);
         }
         "run" => {
             // run [config.json] [--no-open] [--filter kata]... [--exclude kata]...
@@ -705,7 +824,7 @@ fn main() {
         }
         "ui" => cmd_ui(),
         "version" | "-v" | "--version" => {
-            println!("GreenCode Profiler v1.7.0");
+            println!("GreenCode Profiler v1.7.1");
         }
         "help" | "-h" | "--help" => print_help(),
         other => {

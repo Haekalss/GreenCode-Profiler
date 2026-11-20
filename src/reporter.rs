@@ -49,6 +49,9 @@ impl ReportGenerator {
             for m in list {
                 let energy = m["total_energy_joules"].as_f64().unwrap_or(0.0);
                 let score = m["green_efficiency_score"].as_f64().unwrap_or(0.0);
+                let avg_latency = m["avg_latency_ms"].as_f64().unwrap_or(0.0);
+                let avg_cpu = m["avg_cpu_active_s"].as_f64().unwrap_or(0.0);
+                let total_calls = m["total_calls"].as_u64().unwrap_or(0);
 
                 // Pewarnaan dinamis untuk Energi (Joule)
                 let energy_badge = if energy > 10.0 {
@@ -68,21 +71,56 @@ impl ReportGenerator {
                     format!(r#"<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:12px;font-weight:bold;">{:.1} (Boros)</span>"#, score)
                 };
 
+                // Latency color coding
+                let latency_color = if avg_latency > 1000.0 {
+                    "#dc2626"  // Red > 1s
+                } else if avg_latency > 200.0 {
+                    "#d97706"  // Yellow 200ms - 1s
+                } else {
+                    "#059669"  // Green < 200ms
+                };
+                let latency_label = if avg_latency > 1000.0 {
+                    "Lambat"
+                } else if avg_latency > 200.0 {
+                    "Sedang"
+                } else {
+                    "Cepat"
+                };
+
+                // Recommendation based on metrics
+                let recommendation = if score < 60.0 && energy > 5.0 {
+                    "Refactor kritis: Optimasi query + cache + kurangi kompleksitas"
+                } else if score < 85.0 && avg_latency > 500.0 {
+                    "Optimasi DB index + gunakan query builder + pagination"
+                } else if avg_latency > 1000.0 {
+                    "Investigasi N+1 query, tambah Redis cache, async processing"
+                } else if energy > 2.0 {
+                    "Aktifkan OPcache JIT, kurangi middleware berlebih"
+                } else if score < 60.0 {
+                    "Perbaiki arsitektur: pecah God Class, kurangi nesting"
+                } else {
+                    "✅ Sudah optimal"
+                };
+
                 rows_corr.push_str(&format!(
                     r#"<tr>
                         <td style="font-family:monospace;font-size:13px;">{}</td>
                         <td style="text-align:center;">{}</td>
-                        <td style="text-align:right;">{:.2} ms</td>
+                        <td style="text-align:right;color:{};font-weight:600;">{:.2} ms ({})</td>
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:right;">{:.3} s</td>
                         <td style="text-align:center;">{}</td>
+                        <td style="font-size:12px;max-width:300px;">{}</td>
                     </tr>"#,
                     m["module_name"].as_str().unwrap_or(""),
-                    m["total_calls"],
-                    m["avg_latency_ms"].as_f64().unwrap_or(0.0),
+                    total_calls,
+                    latency_color,
+                    avg_latency,
+                    latency_label,
                     energy_badge,
-                    m["avg_cpu_active_s"].as_f64().unwrap_or(0.0),
-                    score_badge
+                    avg_cpu,
+                    score_badge,
+                    recommendation
                 ));
             }
         }
@@ -98,6 +136,9 @@ impl ReportGenerator {
                 };
 
                 let ep_energy = ep["energy_total_joules"].as_f64().unwrap_or(0.0);
+                let ep_latency = ep["latency_ms"].as_f64().unwrap_or(0.0);
+                let ep_cpu = ep["cpu_active_time_s"].as_f64().unwrap_or(0.0);
+
                 let ep_energy_color = if ep_energy > 5.0 {
                     "#dc2626"
                 } else if ep_energy > 1.0 {
@@ -106,24 +147,57 @@ impl ReportGenerator {
                     "#059669"
                 };
 
+                // Latency color coding
+                let latency_color = if ep_latency > 1000.0 {
+                    "#dc2626"
+                } else if ep_latency > 200.0 {
+                    "#d97706"
+                } else {
+                    "#059669"
+                };
+                let latency_label = if ep_latency > 1000.0 {
+                    "🔴 Lambat"
+                } else if ep_latency > 200.0 {
+                    "🟡 Sedang"
+                } else {
+                    "🟢 Cepat"
+                };
+
+                // Recommendation per endpoint
+                let recommendation = if ep_latency > 1000.0 && ep_energy > 5.0 {
+                    "URGENT: Query N+1 + no cache + boros energi"
+                } else if ep_latency > 1000.0 {
+                    "Optimasi DB index + cache Redis + async job"
+                } else if ep_energy > 5.0 {
+                    "Aktifkan OPcache JIT, kurangi overhead PHP"
+                } else if ep_latency > 200.0 {
+                    "Pagination + eager loading + query optimization"
+                } else {
+                    "✅ Optimal"
+                };
+
                 rows_ep.push_str(&format!(
                     r#"<tr>
                         <td style="text-align:center;">{}</td>
                         <td style="font-weight:600;color:#2563eb;">{}</td>
                         <td style="font-family:monospace;font-size:12px;">{}</td>
                         <td style="text-align:center;">{}</td>
-                        <td style="text-align:right;">{:.2} ms</td>
+                        <td style="text-align:right;color:{};font-weight:600;">{:.2} ms ({})</td>
                         <td style="text-align:right;">{:.3} s</td>
                         <td style="text-align:right;font-weight:600;color:{};">{:.4} J</td>
+                        <td style="font-size:12px;max-width:280px;">{}</td>
                     </tr>"#,
                     i + 1,
                     ep["method"].as_str().unwrap_or("GET"),
                     ep["endpoint"].as_str().unwrap_or(""),
                     status_badge,
-                    ep["latency_ms"].as_f64().unwrap_or(0.0),
-                    ep["cpu_active_time_s"].as_f64().unwrap_or(0.0),
+                    latency_color,
+                    ep_latency,
+                    latency_label,
+                    ep_cpu,
                     ep_energy_color,
-                    ep_energy
+                    ep_energy,
+                    recommendation
                 ));
             }
         }
@@ -137,19 +211,38 @@ impl ReportGenerator {
                     "Medium" => "#f59e0b",
                     _ => "#3b82f6",
                 };
+                let smell_type = s["smell_type"].as_str().unwrap_or("");
+                let message = s["message"].as_str().unwrap_or("");
+                let file = s["file"].as_str().unwrap_or("");
+                let line = s["line"].as_u64().unwrap_or(0);
+
+                // Recommendation based on smell type
+                let recommendation = match smell_type {
+                    "GodClass" => "Pecah class jadi beberapa class kecil (SRP), extract service",
+                    "FatController" => "Pindah logika bisnis ke Service/Action, controller hanya handle HTTP",
+                    "DeepNesting" => "Early return, guard clause, extract method, flatten conditional",
+                    "LongMethod" => "Extract method, gunakan composer pattern, kurangi tanggung jawab",
+                    "LongParameterList" => "Gunakan DTO/Parameter Object, builder pattern",
+                    "DuplicateCode" => "Extract common logic ke helper/trait, DRY principle",
+                    "DeadCode" => "Hapus kode tidak terpakai, gunakan static analysis",
+                    _ => "Refactor sesuai pola: SRP, KISS, DRY, Clean Architecture",
+                };
+
                 rows_smells.push_str(&format!(
                     r#"<tr>
                         <td style="text-align:center;"><span style="background:{};color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;">{}</span></td>
                         <td style="font-weight:600;">{}</td>
                         <td>{}</td>
                         <td style="font-family:monospace;font-size:12px;">{}:{}</td>
+                        <td style="font-size:12px;max-width:300px;">{}</td>
                     </tr>"#,
                     badge_color,
                     s["severity"].as_str().unwrap_or(""),
-                    s["smell_type"].as_str().unwrap_or(""),
-                    s["message"].as_str().unwrap_or(""),
-                    s["file"].as_str().unwrap_or(""),
-                    s["line"]
+                    smell_type,
+                    message,
+                    file,
+                    line,
+                    recommendation
                 ));
             }
         }
@@ -159,6 +252,10 @@ impl ReportGenerator {
         if let Some(list) = files {
             for f in list.iter().take(25) {
                 let ccn = f["ccn"].as_u64().unwrap_or(0);
+                let ncloc = f["ncloc"].as_u64().unwrap_or(0);
+                let mi = f["maintainability_index"].as_f64().unwrap_or(0.0);
+                let smell_count = f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0);
+
                 let ccn_badge = if ccn > 20 {
                     format!(r#"<span style="color:#dc2626;font-weight:bold;">{} (Tinggi)</span>"#, ccn)
                 } else if ccn > 10 {
@@ -167,7 +264,6 @@ impl ReportGenerator {
                     format!(r#"<span style="color:#059669;">{} (Aman)</span>"#, ccn)
                 };
 
-                let mi = f["maintainability_index"].as_f64().unwrap_or(0.0);
                 let mi_badge = if mi >= 85.0 {
                     format!(r#"<span style="color:#059669;font-weight:bold;">{:.1} (A)</span>"#, mi)
                 } else if mi >= 65.0 {
@@ -176,11 +272,27 @@ impl ReportGenerator {
                     format!(r#"<span style="color:#dc2626;font-weight:bold;">{:.1} (C)</span>"#, mi)
                 };
 
-                let smell_count = f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0);
                 let smell_badge = if smell_count > 0 {
                     format!(r#"<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:bold;">{}</span>"#, smell_count)
                 } else {
                     r#"<span style="color:#94a3b8;">0</span>"#.to_string()
+                };
+
+                // Recommendation based on file metrics
+                let recommendation = if ccn > 20 && mi < 65.0 {
+                    "URGENT: Refactor besar - pecah class, extract method, kurangi kompleksitas"
+                } else if ccn > 20 {
+                    "Extract methods, kurangi percabangan, gunakan strategy pattern"
+                } else if mi < 65.0 && ncloc > 300 {
+                    "Modularisasi file besar, pecah per tanggung jawab (SRP)"
+                } else if mi < 65.0 {
+                    "Perbaiki naming, kurangi nesting, tambah dokumentasi"
+                } else if smell_count > 3 {
+                    "Bersihkan code smells: hapus dead code, dedup, early return"
+                } else if ccn > 10 {
+                    "Pertimbangkan extract method untuk logic kompleks"
+                } else {
+                    "✅ Bersih & maintainable"
                 };
 
                 rows_files.push_str(&format!(
@@ -191,13 +303,15 @@ impl ReportGenerator {
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:center;">{}</td>
+                        <td style="font-size:12px;max-width:300px;">{}</td>
                     </tr>"#,
                     f["file_path"].as_str().unwrap_or(""),
                     f["language"].as_str().unwrap_or(""),
-                    f["ncloc"],
+                    ncloc,
                     ccn_badge,
                     mi_badge,
-                    smell_badge
+                    smell_badge,
+                    recommendation
                 ));
             }
         }
@@ -275,7 +389,7 @@ impl ReportGenerator {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenCode Profiler v1.7.0 (Rust Native Engine) Report</title>
+    <title>GreenCode Profiler v1.7.1 (Rust Native Engine) Report</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }}
         .container {{ max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 40px; border: 1px solid #e2e8f0; }}
@@ -366,6 +480,7 @@ impl ReportGenerator {
                     <th style="text-align:right;">Total Energi (Joule)</th>
                     <th style="text-align:right;">Waktu CPU Murni</th>
                     <th style="text-align:center;">Green Score</th>
+                    <th>💡 Saran Optimasi</th>
                 </tr>
             </thead>
             <tbody>
@@ -384,6 +499,7 @@ impl ReportGenerator {
                     <th style="text-align:right;">Latensi</th>
                     <th style="text-align:right;">CPU Aktif</th>
                     <th style="text-align:right;">Energi Bersih</th>
+                    <th>💡 Saran Optimasi</th>
                 </tr>
             </thead>
             <tbody>
@@ -433,6 +549,7 @@ impl ReportGenerator {
                     <th>Tipe Masalah</th>
                     <th>Deskripsi</th>
                     <th>Lokasi Berkas</th>
+                    <th>💡 Saran Perbaikan</th>
                 </tr>
             </thead>
             <tbody>
@@ -450,6 +567,7 @@ impl ReportGenerator {
                     <th style="text-align:right;">CCN (Kompleksitas)</th>
                     <th style="text-align:right;">MI (0-100)</th>
                     <th style="text-align:center;">Smells</th>
+                    <th>💡 Saran Optimasi</th>
                 </tr>
             </thead>
             <tbody>
@@ -460,7 +578,7 @@ impl ReportGenerator {
         {}
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.0 (Rust Native Architecture)</strong>.<br>
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.1 (Rust Native Architecture)</strong>.<br>
             Laporan ini memenuhi standar audit perangkat lunak ramah lingkungan (Green Software Engineering).
         </div>
     </div>
@@ -527,6 +645,28 @@ impl ReportGenerator {
                     r#"<span style="color:#94a3b8;">0</span>"#.to_string()
                 };
 
+                // Recommendation based on file metrics
+                let ccn = f["ccn"].as_u64().unwrap_or(0);
+                let ncloc = f["ncloc"].as_u64().unwrap_or(0);
+                let mi = f["maintainability_index"].as_f64().unwrap_or(0.0);
+                let smell_count = f["code_smells"].as_array().map(|a| a.len()).unwrap_or(0);
+
+                let recommendation = if ccn > 20 && mi < 65.0 {
+                    "URGENT: Refactor besar - pecah class, extract method, kurangi kompleksitas"
+                } else if ccn > 20 {
+                    "Extract methods, kurangi percabangan, gunakan strategy pattern"
+                } else if mi < 65.0 && ncloc > 300 {
+                    "Modularisasi file besar, pecah per tanggung jawab (SRP)"
+                } else if mi < 65.0 {
+                    "Perbaiki naming, kurangi nesting, tambah dokumentasi"
+                } else if smell_count > 3 {
+                    "Bersihkan code smells: hapus dead code, dedup, early return"
+                } else if ccn > 10 {
+                    "Pertimbangkan extract method untuk logic kompleks"
+                } else {
+                    "✅ Bersih & maintainable"
+                };
+
                 rows_files.push_str(&format!(
                     r#"<tr>
                         <td style="font-family:monospace;font-size:12px;">{}</td>
@@ -535,13 +675,15 @@ impl ReportGenerator {
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:center;">{}</td>
+                        <td style="font-size:12px;max-width:300px;">{}</td>
                     </tr>"#,
                     f["file_path"].as_str().unwrap_or(""),
                     f["language"].as_str().unwrap_or(""),
-                    f["ncloc"],
+                    ncloc,
                     ccn_badge,
                     mi_badge,
-                    smell_badge
+                    smell_badge,
+                    recommendation
                 ));
             }
         }
@@ -555,19 +697,38 @@ impl ReportGenerator {
                     "Medium" => "#f59e0b",
                     _ => "#3b82f6",
                 };
+                let smell_type = s["smell_type"].as_str().unwrap_or("");
+                let message = s["message"].as_str().unwrap_or("");
+                let file = s["file"].as_str().unwrap_or("");
+                let line = s["line"].as_u64().unwrap_or(0);
+
+                // Recommendation based on smell type
+                let recommendation = match smell_type {
+                    "GodClass" => "Pecah class jadi beberapa class kecil (SRP), extract service",
+                    "FatController" => "Pindah logika bisnis ke Service/Action, controller hanya handle HTTP",
+                    "DeepNesting" => "Early return, guard clause, extract method, flatten conditional",
+                    "LongMethod" => "Extract method, gunakan composer pattern, kurangi tanggung jawab",
+                    "LongParameterList" => "Gunakan DTO/Parameter Object, builder pattern",
+                    "DuplicateCode" => "Extract common logic ke helper/trait, DRY principle",
+                    "DeadCode" => "Hapus kode tidak terpakai, gunakan static analysis",
+                    _ => "Refactor sesuai pola: SRP, KISS, DRY, Clean Architecture",
+                };
+
                 rows_smells.push_str(&format!(
                     r#"<tr>
                         <td style="text-align:center;"><span style="background:{};color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;">{}</span></td>
                         <td style="font-weight:600;">{}</td>
                         <td>{}</td>
                         <td style="font-family:monospace;font-size:12px;">{}:{}</td>
+                        <td style="font-size:12px;max-width:300px;">{}</td>
                     </tr>"#,
                     badge_color,
                     s["severity"].as_str().unwrap_or(""),
-                    s["smell_type"].as_str().unwrap_or(""),
-                    s["message"].as_str().unwrap_or(""),
-                    s["file"].as_str().unwrap_or(""),
-                    s["line"]
+                    smell_type,
+                    message,
+                    file,
+                    line,
+                    recommendation
                 ));
             }
         }
@@ -662,6 +823,7 @@ impl ReportGenerator {
                     <th>Tipe Masalah</th>
                     <th>Deskripsi</th>
                     <th>Lokasi Berkas</th>
+                    <th>💡 Saran Perbaikan</th>
                 </tr>
             </thead>
             <tbody>
@@ -679,6 +841,7 @@ impl ReportGenerator {
                     <th style="text-align:right;">CCN (Kompleksitas)</th>
                     <th style="text-align:right;">MI (0-100)</th>
                     <th style="text-align:center;">Smells</th>
+                    <th>💡 Saran Optimasi</th>
                 </tr>
             </thead>
             <tbody>
@@ -687,7 +850,7 @@ impl ReportGenerator {
         </table>
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.0 (Rust Native Architecture)</strong>.
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.1 (Rust Native Architecture)</strong>.
         </div>
     </div>
 </body>
