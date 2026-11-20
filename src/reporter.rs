@@ -247,10 +247,35 @@ impl ReportGenerator {
             }
         }
 
+        // Tabel "sample" menampilkan 25 file PALING BERISIKO, bukan 25 file pertama
+        // menurut urutan folder — supaya file frontend dan backend sama-sama berpeluang
+        // tampil. Urutan: code smells desc -> CCN desc -> MI asc.
         let files = code_quality["files"].as_array();
+        let total_files_count = files.map(|l| l.len()).unwrap_or(0);
         let mut rows_files = String::new();
         if let Some(list) = files {
-            for f in list.iter().take(25) {
+            let mut ranked: Vec<&Value> = list.iter().collect();
+            ranked.sort_by(|a, b| {
+                let smells_a = a["code_smells"].as_array().map(|x| x.len()).unwrap_or(0);
+                let smells_b = b["code_smells"].as_array().map(|x| x.len()).unwrap_or(0);
+                smells_b
+                    .cmp(&smells_a)
+                    .then_with(|| {
+                        b["ccn"]
+                            .as_u64()
+                            .unwrap_or(0)
+                            .cmp(&a["ccn"].as_u64().unwrap_or(0))
+                    })
+                    .then_with(|| {
+                        a["maintainability_index"]
+                            .as_f64()
+                            .unwrap_or(0.0)
+                            .partial_cmp(&b["maintainability_index"].as_f64().unwrap_or(0.0))
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
+            });
+            for f in ranked.iter().take(25) {
+                let f: &Value = f;
                 let ccn = f["ccn"].as_u64().unwrap_or(0);
                 let ncloc = f["ncloc"].as_u64().unwrap_or(0);
                 let mi = f["maintainability_index"].as_f64().unwrap_or(0.0);
@@ -386,6 +411,20 @@ impl ReportGenerator {
         // Banner filter aktif (jika ada) + kartu sebaran bahasa (bukti cakupan FE+BE)
         let filter_banner = build_filter_banner(&report_data["applied_filter"]);
         let lang_cards = build_language_cards(&quality["language_breakdown"]);
+
+        // Keterangan tabel per-berkas: berapa yang ditampilkan dari total file.
+        let shown_files = total_files_count.min(25);
+        let files_summary = if total_files_count > shown_files {
+            format!(
+                r#"<div style="font-size:12px;color:#64748b;margin:-6px 0 10px 0;">Menampilkan <strong>{}</strong> dari <strong>{}</strong> file — diurutkan berdasarkan risiko (code smells, CCN, MI). Data lengkap tersedia di <code>reports/code_quality.json</code>.</div>"#,
+                shown_files, total_files_count
+            )
+        } else {
+            format!(
+                r#"<div style="font-size:12px;color:#64748b;margin:-6px 0 10px 0;">Menampilkan seluruh <strong>{}</strong> file — diurutkan berdasarkan risiko (code smells, CCN, MI).</div>"#,
+                total_files_count
+            )
+        };
 
         let html = format!(
             r##"<!DOCTYPE html>
@@ -564,6 +603,7 @@ impl ReportGenerator {
         </table>
 
         <div class="section-title blue">5. Sample Metrik per Berkas Kode</div>
+        __FILES_SUMMARY__
         <table>
             <thead>
                 <tr>
@@ -612,7 +652,8 @@ impl ReportGenerator {
 
         let html = html
             .replace("__FILTER_BANNER__", &filter_banner)
-            .replace("__LANG_CARDS__", &lang_cards);
+            .replace("__LANG_CARDS__", &lang_cards)
+            .replace("__FILES_SUMMARY__", &files_summary);
 
         fs::write(p, html)
     }
