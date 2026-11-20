@@ -19,7 +19,7 @@ use reporter::ReportGenerator;
 use serde_json::{json, Value};
 use std::env;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 fn print_banner() {
     println!("================================================================");
@@ -56,6 +56,8 @@ struct CliFlags {
     filters: Vec<String>,
     /// `--exclude <kata>` — boleh diulang
     excludes: Vec<String>,
+    /// `--output <file>` — path laporan HTML kustom (JSON mengikuti nama dasar)
+    output: Option<String>,
 }
 
 impl CliFlags {
@@ -94,6 +96,13 @@ fn parse_flags(args: &[String]) -> CliFlags {
             }
             "--force" | "-f" => f.force = true,
             "--no-open" => f.no_open = true,
+            "--output" | "-o" => {
+                if i + 1 < args.len() {
+                    f.output = Some(args[i + 1].clone());
+                    i += 2;
+                    continue;
+                }
+            }
             _ => {
                 if !a.starts_with('-') {
                     f.positional.push(a.to_string());
@@ -127,6 +136,38 @@ fn apply_filters(
             pass_filter && pass_exclude
         })
         .collect()
+}
+
+/// Tentukan path laporan HTML & JSON.
+/// Tanpa `--output`, pakai path default. Dengan `--output`, HTML memakai path
+/// tersebut (ekstensi `.html` ditambahkan bila belum ada) dan JSON memakai nama
+/// dasar yang sama dengan ekstensi `.json`.
+fn resolve_report_paths(
+    output: &Option<String>,
+    default_html: &str,
+    default_json: &str,
+) -> (String, String) {
+    match output {
+        None => (default_html.to_string(), default_json.to_string()),
+        Some(raw) => {
+            let given = PathBuf::from(raw);
+            let (html, json) = if given
+                .extension()
+                .map(|e| e.eq_ignore_ascii_case("json"))
+                .unwrap_or(false)
+            {
+                (given.with_extension("html"), given)
+            } else if given.extension().is_some() {
+                (given.clone(), given.with_extension("json"))
+            } else {
+                (given.with_extension("html"), given.with_extension("json"))
+            };
+            (
+                html.to_string_lossy().to_string(),
+                json.to_string_lossy().to_string(),
+            )
+        }
+    }
 }
 
 /// Pesan bantuan ketika discovery tidak menemukan rute sama sekali.
@@ -469,18 +510,21 @@ fn cmd_analyze(flags: CliFlags) {
             "considered_files": ov.total_files_considered
         });
     }
-    let json_path = "reports/code_quality.json";
-    let html_path = "reports/code_quality.html";
+    let (html_path, json_path) = resolve_report_paths(
+        &flags.output,
+        "reports/code_quality.html",
+        "reports/code_quality.json",
+    );
 
-    let _ = ReportGenerator::save_json(&val, json_path);
-    let _ = ReportGenerator::generate_code_quality_html(&val, html_path);
+    let _ = ReportGenerator::save_json(&val, &json_path);
+    let _ = ReportGenerator::generate_code_quality_html(&val, &html_path);
 
-    println!("\nHasil JSON tersimpan di : {}", std::fs::canonicalize(json_path).unwrap_or_else(|_| json_path.into()).display());
-    println!("Laporan HTML tersimpan di: {}", std::fs::canonicalize(html_path).unwrap_or_else(|_| html_path.into()).display());
+    println!("\nHasil JSON tersimpan di : {}", std::fs::canonicalize(&json_path).unwrap_or_else(|_| json_path.clone().into()).display());
+    println!("Laporan HTML tersimpan di: {}", std::fs::canonicalize(&html_path).unwrap_or_else(|_| html_path.clone().into()).display());
     println!("================================================================\n");
 
     if !no_open {
-        ReportGenerator::open_in_browser(html_path);
+        ReportGenerator::open_in_browser(&html_path);
     }
 }
 
@@ -725,22 +769,25 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
         }
     });
 
-    let json_path = "reports/greencode_report.json";
-    let html_path = "reports/greencode_report.html";
+    let (html_path, json_path) = resolve_report_paths(
+        &flags.output,
+        "reports/greencode_report.html",
+        "reports/greencode_report.json",
+    );
 
-    let _ = ReportGenerator::save_json(&report_data, json_path);
-    let _ = ReportGenerator::generate_html(&report_data, html_path);
+    let _ = ReportGenerator::save_json(&report_data, &json_path);
+    let _ = ReportGenerator::generate_html(&report_data, &html_path);
 
     println!("\n================================================================");
     println!("                     PROFILING SELESAI                          ");
     println!("================================================================");
     println!("Laporan Komprehensif tersimpan di:");
-    println!(" - JSON : {}", std::fs::canonicalize(json_path).unwrap_or_else(|_| json_path.into()).display());
-    println!(" - HTML : {}", std::fs::canonicalize(html_path).unwrap_or_else(|_| html_path.into()).display());
+    println!(" - JSON : {}", std::fs::canonicalize(&json_path).unwrap_or_else(|_| json_path.clone().into()).display());
+    println!(" - HTML : {}", std::fs::canonicalize(&html_path).unwrap_or_else(|_| html_path.clone().into()).display());
     println!("================================================================\n");
 
     if !flags.no_open {
-        ReportGenerator::open_in_browser(html_path);
+        ReportGenerator::open_in_browser(&html_path);
     }
 }
 
@@ -768,9 +815,11 @@ fn print_help() {
     println!("                        Deteksi rute nyata (default: tanpa batas, semua");
     println!("                        bahasa: Node/PHP/Python/Go/Rust)");
     println!("  detect                Pindai proses server aktif dan PID-nya");
-    println!("  analyze [dir]         Analisis kualitas kode statis (CCN, MI, LOC, Smells)");
-    println!("  run [config.json] [--no-open] [--filter K] [--exclude K]");
+    println!("  analyze [dir] [--no-open] [--filter K] [--exclude K] [--output file]");
+    println!("                        Analisis kualitas kode statis (CCN, MI, LOC, Smells)");
+    println!("  run [config.json] [--no-open] [--filter K] [--exclude K] [--output file]");
     println!("                        Jalankan profiling energi dan kualitas kode");
+    println!("                        (--output: simpan laporan ke path kustom, JSON ikut)");
     println!("  ui                    Buka laporan HTML di peramban web");
     println!("  version               Tampilkan versi GreenCode Profiler");
     println!("  help                  Tampilkan panduan bantuan ini\n");

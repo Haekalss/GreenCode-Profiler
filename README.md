@@ -32,6 +32,7 @@ GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Penggun
 8. **Deteksi Rute Lintas Bahasa Tanpa Batas:** Memindai seluruh rute aplikasi tanpa batas jumlah, termasuk rute bersarang dan _prefix group_, untuk Node.js (Next.js, Express, NestJS), PHP (Laravel), Python (Flask, FastAPI, Django), Go (net/http, gin, chi), dan Rust (axum, actix). Rute berparameter otomatis dikecualikan dari _profiling_ agar tidak menghasilkan HTTP 404.
 9. **Laporan Teragregasi per Endpoint:** Setiap endpoint ditampilkan dalam **satu baris berisi rata-rata** dari seluruh pengulangan pengukuran, sehingga laporan tidak mengulang endpoint sebanyak jumlah run.
 10. **Filter Endpoint & Kode (`--filter` / `--exclude`):** Menyaring endpoint **dan file kode** dengan kata kunci yang sama — boleh diulang (logika OR), cocok tanpa memedulikan huruf besar/kecil pada path maupun isi file. Berlaku untuk `routes`, `init`, `run`, dan `analyze`; penyaringan dilakukan *in-memory* sehingga `greencode.json` tidak berubah. Pada monorepo, semua `source_dirs` (frontend + backend) tetap ditelusuri sehingga kedua bahasa ikut terdeteksi, lalu file disaring per kata kunci.
+11. **Output Laporan Kustom (`--output`):** Menyimpan laporan ke path pilihan, mis. `greencode run --filter smki --output reports/smki.html`. Berkas JSON otomatis memakai nama dasar yang sama (`reports/smki.json`), folder tujuan dibuat bila belum ada, dan laporan default tidak tertimpa — sehingga hasil beberapa filter bisa disimpan berdampingan.
 
 ---
 
@@ -118,8 +119,8 @@ Berkas biner hasil kompilasi tersedia di `target/release/greencode.exe`.
 | Perintah            | Parameter                   | Deskripsi                                                                |
 | ------------------- | --------------------------- | ------------------------------------------------------------------------ |
 | `greencode init`    | `[--force] [--filter K] [--exclude K]` | Membuat `greencode.json` dengan deteksi rute otomatis (tersaring) |
-| `greencode run`     | `[config.json] [--no-open] [--filter K] [--exclude K]` | Menjalankan profiling energi dan kualitas struktur kode |
-| `greencode analyze` | `[config.json] [--no-open] [--filter K] [--exclude K]` | Menjalankan analisis kualitas kode statis (NCLOC, CCN, MI, Smells) dengan filter file |
+| `greencode run`     | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Menjalankan profiling energi dan kualitas struktur kode |
+| `greencode analyze` | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Menjalankan analisis kualitas kode statis (NCLOC, CCN, MI, Smells) dengan filter file |
 | `greencode routes`  | `[dir] [--limit N] [--filter K] [--exclude K]` | Memindai seluruh rute nyata dari kode sumber (semua bahasa; `--limit` membatasi jumlah) |
 | `greencode detect`  | `[language]`                | Memindai proses server aktif beserta nomor Process ID (PID) dan port     |
 | `greencode ui`      | -                           | Membuka laporan dashboard HTML hasil profiling terakhir di peramban      |
