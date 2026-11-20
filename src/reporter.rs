@@ -383,13 +383,17 @@ impl ReportGenerator {
             );
         }
 
+        // Banner filter aktif (jika ada) + kartu sebaran bahasa (bukti cakupan FE+BE)
+        let filter_banner = build_filter_banner(&report_data["applied_filter"]);
+        let lang_cards = build_language_cards(&quality["language_breakdown"]);
+
         let html = format!(
             r##"<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenCode Profiler v1.7.1 (Rust Native Engine) Report</title>
+    <title>GreenCode Profiler v1.7.2 (Rust Native Engine) Report</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }}
         .container {{ max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 40px; border: 1px solid #e2e8f0; }}
@@ -432,6 +436,7 @@ impl ReportGenerator {
                 <p style="margin:5px 0 0 0;font-size:12px;color:#64748b;text-align:right;">{}</p>
             </div>
         </div>
+        __FILTER_BANNER__
 
         <div class="grid">
             <div class="card">
@@ -525,6 +530,7 @@ impl ReportGenerator {
                 <div class="lbl">Code Smells Terdeteksi</div>
                 <div class="val" style="color:#ef4444;">{}</div>
             </div>
+            __LANG_CARDS__
         </div>
 
         <div class="desc-box blue">
@@ -578,7 +584,7 @@ impl ReportGenerator {
         {}
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.1 (Rust Native Architecture)</strong>.<br>
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.2 (Rust Native Architecture)</strong>.<br>
             Laporan ini memenuhi standar audit perangkat lunak ramah lingkungan (Green Software Engineering).
         </div>
     </div>
@@ -603,6 +609,10 @@ impl ReportGenerator {
             rows_files,
             php_section_html
         );
+
+        let html = html
+            .replace("__FILTER_BANNER__", &filter_banner)
+            .replace("__LANG_CARDS__", &lang_cards);
 
         fs::write(p, html)
     }
@@ -733,6 +743,9 @@ impl ReportGenerator {
             }
         }
 
+        let filter_banner = build_filter_banner(&report_data["applied_filter"]);
+        let lang_cards = build_language_cards(&ov["language_breakdown"]);
+
         let html = format!(
             r##"<!DOCTYPE html>
 <html lang="id">
@@ -776,6 +789,7 @@ impl ReportGenerator {
                 <span style="background:#3b82f6;color:white;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">STATIC AUDIT</span>
             </div>
         </div>
+        __FILTER_BANNER__
 
         <div class="grid">
             <div class="card">
@@ -799,6 +813,7 @@ impl ReportGenerator {
                 <div class="lbl">Code Smells</div>
                 <div class="val" style="color:#ef4444;">{}</div>
             </div>
+            __LANG_CARDS__
         </div>
 
         <div class="desc-box">
@@ -850,7 +865,7 @@ impl ReportGenerator {
         </table>
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.1 (Rust Native Architecture)</strong>.
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.7.2 (Rust Native Architecture)</strong>.
         </div>
     </div>
 </body>
@@ -865,6 +880,10 @@ impl ReportGenerator {
             rows_smells,
             rows_files
         );
+
+        let html = html
+            .replace("__FILTER_BANNER__", &filter_banner)
+            .replace("__LANG_CARDS__", &lang_cards);
 
         fs::write(p, html)
     }
@@ -887,4 +906,53 @@ impl ReportGenerator {
             let _ = Command::new("xdg-open").arg(&path_str).spawn();
         }
     }
+}
+
+/// Banner yang menampilkan keyword filter aktif + jumlah file yang cocok.
+fn build_filter_banner(applied_filter: &Value) -> String {
+    if applied_filter.is_null() {
+        return String::new();
+    }
+    let filters: Vec<&str> = applied_filter["filters"]
+        .as_array()
+        .map(|a| a.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+    let excludes: Vec<&str> = applied_filter["excludes"]
+        .as_array()
+        .map(|a| a.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+    let matched = applied_filter["matched_files"].as_u64().unwrap_or(0);
+    let considered = applied_filter["considered_files"].as_u64().unwrap_or(0);
+
+    let exclude_part = if excludes.is_empty() {
+        String::new()
+    } else {
+        format!(" | Exclude: <strong>{}</strong>", excludes.join(", "))
+    };
+
+    format!(
+        r#"<div class="desc-box" style="background:#ecfeff;border-color:#a5f3fc;color:#155e75;">
+            <h3>🔎 Filter Kode Aktif</h3>
+            <p style="margin:0;">Keyword: <strong>{}</strong>{} — <strong>{}</strong> dari <strong>{}</strong> file kode cocok (path atau isi).</p>
+        </div>"#,
+        filters.join(", "),
+        exclude_part,
+        matched,
+        considered
+    )
+}
+
+/// Kartu sebaran bahasa (mis. PHP + TypeScript) sebagai bukti cakupan monorepo.
+fn build_language_cards(language_breakdown: &Value) -> String {
+    let mut cards = String::new();
+    if let Some(list) = language_breakdown.as_array() {
+        for l in list {
+            cards.push_str(&format!(
+                r#"<div class="card"><div class="lbl">{}</div><div class="val">{}</div><div style="font-size:12px;color:#64748b;margin-top:4px;">file</div></div>"#,
+                l["language"].as_str().unwrap_or("-"),
+                l["files"].as_u64().unwrap_or(0)
+            ));
+        }
+    }
+    cards
 }

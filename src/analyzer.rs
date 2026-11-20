@@ -24,14 +24,24 @@ pub struct CodeSmell {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LanguageStat {
+    pub language: String,
+    pub files: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OverviewMetrics {
     pub total_files: usize,
+    /// Jumlah file kode yang ditemukan sebelum filter file diterapkan.
+    pub total_files_considered: usize,
     pub total_ncloc: usize,
     pub total_ccn: u32,
     pub average_ccn_per_file: f64,
     pub average_maintainability_index: f64,
     pub maintainability_grade: String,
     pub total_code_smells: usize,
+    /// Sebaran file per bahasa (mis. php, typescript) — membuktikan cakupan monorepo.
+    pub language_breakdown: Vec<LanguageStat>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,6 +66,10 @@ pub struct CodeQualityReport {
 
 pub struct CodeQualityAnalyzer {
     pub target_dirs: Vec<PathBuf>,
+    /// Kata kunci filter file (case-insensitive, cocok pada path ATAU isi file).
+    pub file_filters: Vec<String>,
+    /// Kata kunci exclude file (case-insensitive, cocok pada path ATAU isi file).
+    pub file_excludes: Vec<String>,
 }
 
 impl CodeQualityAnalyzer {
@@ -65,7 +79,46 @@ impl CodeQualityAnalyzer {
             .map(|p| p.as_ref().to_path_buf())
             .filter(|p| p.exists())
             .collect();
-        Self { target_dirs }
+        Self {
+            target_dirs,
+            file_filters: Vec::new(),
+            file_excludes: Vec::new(),
+        }
+    }
+
+    /// Buat analyzer dengan filter file. File hanya dianalisis jika path atau
+    /// isinya mengandung salah satu kata kunci `filters`, dan tidak mengandung
+    /// kata kunci `excludes`.
+    pub fn with_file_filters<P: AsRef<Path>>(
+        targets: Vec<P>,
+        filters: Vec<String>,
+        excludes: Vec<String>,
+    ) -> Self {
+        let target_dirs = targets
+            .into_iter()
+            .map(|p| p.as_ref().to_path_buf())
+            .filter(|p| p.exists())
+            .collect();
+        Self {
+            target_dirs,
+            file_filters: filters.into_iter().map(|f| f.to_lowercase()).collect(),
+            file_excludes: excludes.into_iter().map(|x| x.to_lowercase()).collect(),
+        }
+    }
+
+    fn matches_file_filters(&self, path_lower: &str, content_lower: &str) -> bool {
+        let passes_filter = self.file_filters.is_empty()
+            || self.file_filters
+                .iter()
+                .any(|k| path_lower.contains(k) || content_lower.contains(k));
+        if !passes_filter {
+            return false;
+        }
+        let excluded = self
+            .file_excludes
+            .iter()
+            .any(|k| path_lower.contains(k) || content_lower.contains(k));
+        !excluded
     }
 
     pub fn run_analysis(&self) -> CodeQualityReport {
@@ -85,6 +138,7 @@ impl CodeQualityAnalyzer {
         let mut files_result = Vec::new();
         let mut all_functions = Vec::new();
         let mut all_smells = Vec::new();
+        let mut files_considered = 0usize;
 
         let mut code_files = Vec::new();
         for target in &self.target_dirs {
@@ -103,7 +157,18 @@ impl CodeQualityAnalyzer {
                 _ => continue,
             };
 
+            files_considered += 1;
+
             if let Ok(content) = fs::read_to_string(&path) {
+                // Terapkan filter file (path ATAU isi) sebelum menghitung metrik.
+                if self.file_filters.len() > 0 || self.file_excludes.len() > 0 {
+                    let path_lower = path.to_string_lossy().to_lowercase();
+                    let content_lower = content.to_lowercase();
+                    if !self.matches_file_filters(&path_lower, &content_lower) {
+                        continue;
+                    }
+                }
+
                 let mut ncloc = 0;
                 let mut file_ccn = 1;
                 let mut file_smells = Vec::new();
@@ -199,15 +264,27 @@ impl CodeQualityAnalyzer {
         all_functions.sort_by(|a, b| b.ccn.cmp(&a.ccn));
         all_functions.truncate(10);
 
+        // Sebaran file per bahasa — memastikan cakupan monorepo (FE + BE) terlihat.
+        let mut lang_map: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+        for f in &files_result {
+            *lang_map.entry(f.language.clone()).or_insert(0) += 1;
+        }
+        let language_breakdown: Vec<LanguageStat> = lang_map
+            .into_iter()
+            .map(|(language, files)| LanguageStat { language, files })
+            .collect();
+
         CodeQualityReport {
             overview: OverviewMetrics {
                 total_files,
+                total_files_considered: files_considered,
                 total_ncloc,
                 total_ccn,
                 average_ccn_per_file: (avg_ccn * 100.0).round() / 100.0,
                 average_maintainability_index: (avg_mi * 100.0).round() / 100.0,
                 maintainability_grade: grade.to_string(),
                 total_code_smells: all_smells.len(),
+                language_breakdown,
             },
             files: files_result,
             top_complex_functions: all_functions,

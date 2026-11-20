@@ -1,4 +1,4 @@
-//! GreenCode Profiler v1.7.1 - Rust Native Architecture
+//! GreenCode Profiler v1.7.2 - Rust Native Architecture
 //! Universal Process-Level Energy Profiler & Green-Maintainability Framework
 
 mod analyzer;
@@ -23,7 +23,7 @@ use std::path::Path;
 
 fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.7.1 (Rust Native Architecture)         ");
+    println!("   GREENCODE PROFILER v1.7.2 (Rust Native Architecture)         ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -340,10 +340,9 @@ fn cmd_analyze(flags: CliFlags) {
     let no_open = flags.no_open;
 
     let mut inferred_targets: Vec<String> = Vec::new();
-    let mut has_config = false;
 
-    // Coba baca config untuk filter inference
-    if Path::new(&config_path).exists() {
+    // Coba baca config HANYA jika argumen pertama berupa file (bukan direktori).
+    if Path::new(&config_path).is_file() {
         let cfg_str = fs::read_to_string(&config_path).unwrap_or_default();
         let cfg: Value = serde_json::from_str(&cfg_str).unwrap_or(json!({}));
 
@@ -387,84 +386,89 @@ fn cmd_analyze(flags: CliFlags) {
             }
         }
 
-        // Infer target dirs dari endpoint yang tersisa (sama seperti cmd_run)
-        if flags.has_filter() {
-            let mut dirs = std::collections::HashSet::new();
-            for ep in &endpoints_from_config {
-                match ep.service.as_deref() {
-                    Some("frontend") => {
-                        if let Some(arr) = cfg["source_dirs"].as_array() {
-                            for dir in arr.iter().filter_map(|v| v.as_str()) {
-                                dirs.insert(dir.to_string());
-                            }
-                        }
-                    }
-                    Some("backend") => {
-                        if let Some(arr) = cfg["source_dirs"].as_array() {
-                            for dir in arr.iter().filter_map(|v| v.as_str()) {
-                                dirs.insert(dir.to_string());
-                            }
-                        }
-                    }
-                    Some(svc) => {
-                        if let Some(arr) = cfg["source_dirs"].as_array() {
-                            for dir in arr.iter().filter_map(|v| v.as_str()) {
-                                if dir.contains(svc) || svc.contains(dir) {
-                                    dirs.insert(dir.to_string());
-                                }
-                            }
-                        }
-                    }
-                    None => {}
-                }
-            }
-            inferred_targets = dirs.into_iter().collect();
-        } else {
-            // Tanpa filter: pakai semua source_dirs
-            if let Some(arr) = cfg["source_dirs"].as_array() {
-                inferred_targets = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
-            } else if let Some(dir) = cfg["source_dir"].as_str() {
-                inferred_targets = vec![dir.to_string()];
-            }
+        // SELALU pakai semua source_dirs agar monorepo (FE + BE) tercakup.
+        // Penyaringan dilakukan di level FILE (path/isi) memakai keyword filter.
+        if let Some(arr) = cfg["source_dirs"].as_array() {
+            inferred_targets = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+        } else if let Some(dir) = cfg["source_dir"].as_str() {
+            inferred_targets = vec![dir.to_string()];
         }
-        has_config = true;
     }
 
-    // Fallback: jika tidak ada config atau tidak ada inferred targets, pakai positional arg
+    // Fallback: jika tidak ada config atau tidak ada inferred targets, pakai positional arg.
+    // Mendukung `analyze <direktori>` maupun `analyze <config.json>`.
     if inferred_targets.is_empty() {
-        let target = if flags.positional.len() > 1 && !flags.positional[1].starts_with('-') {
-            &flags.positional[1]
+        let target = if let Some(first) = flags.positional.first() {
+            if Path::new(first).is_dir() {
+                first.clone()
+            } else if flags.positional.len() > 1 && !flags.positional[1].starts_with('-') {
+                flags.positional[1].clone()
+            } else {
+                ".".to_string()
+            }
         } else {
-            "."
+            ".".to_string()
         };
-        inferred_targets = vec![target.to_string()];
+        inferred_targets = vec![target];
     }
 
     println!("================================================================");
     println!("   GREENCODE STATIC CODE QUALITY ANALYZER (Rust Native)         ");
     println!("================================================================");
-    if flags.has_filter() && has_config {
-        println!("Target direktori (dari filter): {}", inferred_targets.join(", "));
+    if flags.has_filter() {
+        println!("Target direktori (monorepo, semua source_dirs): {}", inferred_targets.join(", "));
     } else {
         for t in &inferred_targets {
             println!("Scanning Directory : {}", std::fs::canonicalize(t).unwrap_or_else(|_| t.into()).display());
         }
     }
 
-    let analyzer = CodeQualityAnalyzer::new(inferred_targets);
+    let analyzer = if flags.has_filter() {
+        CodeQualityAnalyzer::with_file_filters(
+            inferred_targets,
+            flags.filters.clone(),
+            flags.excludes.clone(),
+        )
+    } else {
+        CodeQualityAnalyzer::new(inferred_targets)
+    };
     let report = analyzer.run_analysis();
     let ov = &report.overview;
 
     println!("----------------------------------------------------------------");
+    if flags.has_filter() {
+        println!(
+            "Filter File              : {} cocok dengan keyword {:?} dari {} total file kode",
+            ov.total_files,
+            flags.filters,
+            ov.total_files_considered
+        );
+    }
     println!("Total Files Scanned      : {} files", ov.total_files);
     println!("Total NCLOC              : {} lines", ov.total_ncloc);
     println!("Total Complexity (CCN)   : {}", ov.total_ccn);
     println!("Average CCN per File     : {:.2}", ov.average_ccn_per_file);
     println!("Maintainability Index    : {:.1} / 100 (Grade: {})", ov.average_maintainability_index, ov.maintainability_grade);
     println!("Architectural Smells     : {} detected", ov.total_code_smells);
+    if !ov.language_breakdown.is_empty() {
+        let langs: Vec<String> = ov
+            .language_breakdown
+            .iter()
+            .map(|l| format!("{} {} file", l.language, l.files))
+            .collect();
+        println!("Bahasa Terdeteksi        : {}", langs.join(", "));
+    }
     println!("----------------------------------------------------------------");
 
-    let val = serde_json::to_value(&report).unwrap();
+    let mut val = serde_json::to_value(&report).unwrap();
+    if flags.has_filter() {
+        val["applied_filter"] = json!({
+            "filters": flags.filters,
+            "excludes": flags.excludes,
+            "matched_files": ov.total_files,
+            "considered_files": ov.total_files_considered
+        });
+    }
     let json_path = "reports/code_quality.json";
     let html_path = "reports/code_quality.html";
 
@@ -543,62 +547,50 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
         }
     }
 
-    // Infer target dirs untuk static analysis dari endpoint yang tersisa
-    // Jika ada filter, hanya scan source_dir yang relevan dengan service endpoint tersisa
-    let inferred_targets: Vec<String> = if flags.has_filter() {
-        let mut dirs = std::collections::HashSet::new();
-        for ep in &endpoints_from_config {
-            match ep.service.as_deref() {
-                Some("frontend") => {
-                    // Scan semua frontend source dirs
-                    if let Some(arr) = cfg["source_dirs"].as_array() {
-                        for dir in arr.iter().filter_map(|v| v.as_str()) {
-                            dirs.insert(dir.to_string());
-                        }
-                    }
-                }
-                Some("backend") => {
-                    // Scan semua backend source dirs
-                    if let Some(arr) = cfg["source_dirs"].as_array() {
-                        for dir in arr.iter().filter_map(|v| v.as_str()) {
-                            dirs.insert(dir.to_string());
-                        }
-                    }
-                }
-                Some(svc) => {
-                    // Cocokkan service dengan nama source_dir (exact match)
-                    if let Some(arr) = cfg["source_dirs"].as_array() {
-                        for dir in arr.iter().filter_map(|v| v.as_str()) {
-                            if dir.contains(svc) || svc.contains(dir) {
-                                dirs.insert(dir.to_string());
-                            }
-                        }
-                    }
-                }
-                None => {}
-            }
-        }
-        dirs.into_iter().collect()
+    // Target direktori: SELALU pakai semua source_dirs agar monorepo (FE + BE)
+    // tercakup. Penyaringan dilakukan di level FILE (path/isi) memakai keyword
+    // yang sama dengan filter endpoint — bukan dengan memilih salah satu folder.
+    let inferred_targets: Vec<String> = if let Some(arr) = cfg["source_dirs"].as_array() {
+        arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()
+    } else if let Some(dir) = cfg["source_dir"].as_str() {
+        vec![dir.to_string()]
     } else {
-        // Tanpa filter: pakai semua source_dirs seperti biasa
-        if let Some(arr) = cfg["source_dirs"].as_array() {
-            arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()
-        } else if let Some(dir) = cfg["source_dir"].as_str() {
-            vec![dir.to_string()]
-        } else {
-            vec![".".to_string()]
-        }
+        vec![".".to_string()]
     };
 
     // 1. Static Code Analysis
     println!("[GreenCode] [1/4] Menjalankan Analisis Kualitas Struktur Kode (Rust Analyzer)...");
     if flags.has_filter() && !inferred_targets.is_empty() {
-        println!("            Target direktori (dari filter): {}", inferred_targets.join(", "));
+        println!("            Target direktori (monorepo, semua source_dirs): {}", inferred_targets.join(", "));
     }
-    let analyzer = CodeQualityAnalyzer::new(inferred_targets);
+    let analyzer = if flags.has_filter() {
+        CodeQualityAnalyzer::with_file_filters(
+            inferred_targets,
+            flags.filters.clone(),
+            flags.excludes.clone(),
+        )
+    } else {
+        CodeQualityAnalyzer::new(inferred_targets)
+    };
     let quality_report = analyzer.run_analysis();
     let q_ov = &quality_report.overview;
+    if flags.has_filter() {
+        println!(
+            "            Filter file: {} cocok dengan keyword {:?} dari {} total file kode.",
+            q_ov.total_files,
+            flags.filters,
+            q_ov.total_files_considered
+        );
+    }
     println!("            Files: {} | NCLOC: {} | Avg CCN: {:.2} | MI: {:.1}/100", q_ov.total_files, q_ov.total_ncloc, q_ov.average_ccn_per_file, q_ov.average_maintainability_index);
+    if !q_ov.language_breakdown.is_empty() {
+        let langs: Vec<String> = q_ov
+            .language_breakdown
+            .iter()
+            .map(|l| format!("{} {} file", l.language, l.files))
+            .collect();
+        println!("            Bahasa terdeteksi: {}", langs.join(", "));
+    }
 
     // 2. PHP Green Extension & Runtime Audit
     let php_audit_opt = if runtime == "php" || runtime == "fullstack" || runtime == "auto" {
@@ -703,7 +695,7 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.7.1",
+            "engine": "Rust Native Architecture v1.7.2",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp,
             "repeats_per_endpoint": repeats,
@@ -720,7 +712,17 @@ fn cmd_run(config_path: &str, flags: CliFlags) {
         "php_environment": serde_json::to_value(&php_audit_opt).unwrap_or(json!(null)),
         "correlated_modules": correlated,
         "code_quality": serde_json::to_value(&quality_report).unwrap(),
-        "endpoints_detail": endpoints_detail
+        "endpoints_detail": endpoints_detail,
+        "applied_filter": if flags.has_filter() {
+            json!({
+                "filters": &flags.filters,
+                "excludes": &flags.excludes,
+                "matched_files": quality_report.overview.total_files,
+                "considered_files": quality_report.overview.total_files_considered
+            })
+        } else {
+            json!(null)
+        }
     });
 
     let json_path = "reports/greencode_report.json";
@@ -824,7 +826,7 @@ fn main() {
         }
         "ui" => cmd_ui(),
         "version" | "-v" | "--version" => {
-            println!("GreenCode Profiler v1.7.1");
+            println!("GreenCode Profiler v1.7.2");
         }
         "help" | "-h" | "--help" => print_help(),
         other => {
