@@ -2,7 +2,7 @@
 
 pub fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.8.0 (Rust Native Architecture)         ");
+    println!("   GREENCODE PROFILER v1.8.1 (Rust Native Architecture)         ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }

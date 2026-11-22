@@ -10,9 +10,9 @@
 [![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.100+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Runtime: Standalone](https://img.shields.io/badge/Runtime-Zero%20Dependency-10b981.svg)]()
 [![Distribution: NPM](https://img.shields.io/badge/NPM-Launcher-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)
-[![Version](https://img.shields.io/badge/Version-1.8.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
+[![Version](https://img.shields.io/badge/Version-1.8.1-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
 
-GreenCode Profiler (GCP) v1.8.0 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
+GreenCode Profiler (GCP) v1.8.1 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
 
 ---
 
@@ -44,7 +44,7 @@ Pilih salah satu metode instalasi yang sesuai dengan alur kerja Anda:
 
 Metode ini **sama sekali tidak membutuhkan instalasi dependensi apapun** (tidak perlu Node.js, Python, atau Rust). Sangat cocok untuk pengguna umum, penguji, atau developer bahasa apapun.
 
-1. Unduh arsip rilis resmi: [GreenCode-v1.8.0-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
+1. Unduh arsip rilis resmi: [GreenCode-v1.8.1-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
 2. Ekstrak arsip tersebut untuk mendapatkan berkas `greencode.exe`.
 3. Tempatkan berkas `greencode.exe` di direktori utama (_root_) proyek web yang akan diuji.
 4. Pastikan server aplikasi web Anda sedang berjalan (contoh: port 3000 atau port 8000).

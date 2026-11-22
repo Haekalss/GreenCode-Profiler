@@ -38,7 +38,7 @@ pub fn build_report_data(
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.8.0",
+            "engine": "Rust Native Architecture v1.8.1",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp,
             "repeats_per_endpoint": repeats,

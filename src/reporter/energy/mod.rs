@@ -22,10 +22,10 @@ pub fn generate<P: AsRef<Path>>(data: &Value, path: P) -> std::io::Result<()> {
     let q_overview = &quality["overview"];
     let php = &data["php_environment"];
 
-    let (php_summary, php_rows) = sections::format_php_section(php);
+    let total_files_count = quality["files"].as_array().map(|v| v.len()).unwrap_or(0);
 
     let vars = [
-        ("LOGO_BASE64", LOGO_BASE64.to_string()),
+        ("LOGO", LOGO_BASE64.to_string()),
         ("PROJECT_NAME", text(meta, "project_name").to_string()),
         ("TIMESTAMP", text(meta, "timestamp").to_string()),
         ("RUNTIME", text(meta, "runtime").to_uppercase()),
@@ -36,23 +36,25 @@ pub fn generate<P: AsRef<Path>>(data: &Value, path: P) -> std::io::Result<()> {
         ("TOTAL_REQUESTS", integer(totals, "total_requests").to_string()),
         ("TOTAL_JOULES", format!("{:.4}", number(totals, "total_joules"))),
         ("TOTAL_KWH", format!("{:.8}", number(totals, "total_kwh"))),
-        ("TOTAL_CPU_S", format!("{:.3}", number(totals, "total_cpu_active_s"))),
+        ("TOTAL_CPU", format!("{:.3}", number(totals, "total_cpu_active_s"))),
         ("AVG_LATENCY_MS", format!("{:.1}", number(totals, "avg_latency_ms"))),
-        ("TOTAL_CO2E_G", format!("{:.4}", number(totals, "total_co2e_g"))),
+        ("TOTAL_CO2", format!("{:.4}", number(totals, "total_co2e_g"))),
         ("TOTAL_FILES", integer(q_overview, "total_files").to_string()),
         ("TOTAL_NCLOC", integer(q_overview, "total_ncloc").to_string()),
         ("AVG_CCN", format!("{:.2}", number(q_overview, "average_ccn_per_file"))),
         ("AVG_MI", format!("{:.1}", number(q_overview, "average_maintainability_index"))),
+        ("MI", format!("{:.1}", number(q_overview, "average_maintainability_index"))),
         ("GRADE", text(q_overview, "maintainability_grade").to_string()),
         ("TOTAL_SMELLS", integer(q_overview, "total_code_smells").to_string()),
         ("FILTER_BANNER", filter_banner(&data["applied_filter"])),
         ("LANGUAGE_CARDS", language_cards(&q_overview["language_breakdown"])),
+        ("LANG_CARDS", language_cards(&q_overview["language_breakdown"])),
         ("ROWS_CORRELATED", sections::format_module_rows(&data["correlated_modules"])),
         ("ROWS_ENDPOINTS", sections::format_endpoint_rows(&data["endpoints_detail"])),
-        ("PHP_SUMMARY", php_summary),
-        ("ROWS_PHP", php_rows),
+        ("FILES_SUMMARY", sections::format_files_summary(total_files_count)),
         ("ROWS_FILES", sections::format_file_rows(&quality["files"])),
         ("ROWS_SMELLS", sections::format_smell_rows(&quality["code_smells"])),
+        ("PHP_SECTION", sections::format_php_section(php)),
     ];
 
     let html = render(TEMPLATE, &vars);

@@ -1,4 +1,4 @@
-//! GreenCode Profiler v1.8.0 - Rust Native Architecture
+//! GreenCode Profiler v1.8.1 - Rust Native Architecture
 //! Universal Process-Level Energy Profiler & Green-Maintainability Framework
 
 pub mod analyzer;
