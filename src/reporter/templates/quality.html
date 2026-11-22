@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>GreenCode Static Code Quality Report (Rust)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }
+        .container { max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px; }
+        .header-brand { display: flex; align-items: center; gap: 18px; }
+        .logo-img { width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 25px 0; }
+        .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }
+        .card .val { font-size: 26px; font-weight: 700; color: #0f172a; margin-top: 6px; }
+        .card .lbl { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px 12px; }
+        th { background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .section-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 35px; margin-bottom: 12px; border-left: 4px solid #3b82f6; padding-left: 10px; }
+        .desc-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 18px 22px; margin-bottom: 25px; line-height: 1.6; font-size: 14px; color: #1e40af; }
+        .desc-box h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #1e3a8a; }
+        .desc-box ul { margin: 0; padding-left: 20px; }
+        .desc-box li { margin-bottom: 8px; }
+        .desc-box strong { color: #0f172a; }
+        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-brand">
+                <img src="data:image/png;base64,{{LOGO}}" class="logo-img" alt="GreenCode Logo" />
+                <div>
+                    <h1 style="margin:0;font-size:24px;color:#0f172a;">Static Code Quality &amp; Architecture Report</h1>
+                    <p style="margin:5px 0 0 0;color:#64748b;">Dianalisis menggunakan GreenCode Static Analyzer (Rust Native Engine)</p>
+                </div>
+            </div>
+            <div>
+                <span style="background:#3b82f6;color:white;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">STATIC AUDIT</span>
+            </div>
+        </div>
+        {{FILTER_BANNER}}
+
+        <div class="grid">
+            <div class="card">
+                <div class="lbl">Total File</div>
+                <div class="val">{{TOTAL_FILES}}</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Total NCLOC</div>
+                <div class="val">{{TOTAL_NCLOC}}</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Avg CCN / File</div>
+                <div class="val">{{AVG_CCN}}</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Maintainability Index</div>
+                <div class="val" style="color:#059669;">{{MI}}/100</div>
+                <div style="font-size:11px;color:#64748b;margin-top:2px;">{{GRADE}}</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Code Smells</div>
+                <div class="val" style="color:#ef4444;">{{TOTAL_SMELLS}}</div>
+            </div>
+            {{LANG_CARDS}}
+        </div>
+
+        <div class="desc-box">
+            <h3>📐 Panduan &amp; Penjelasan Parameter Kualitas Struktur Kode</h3>
+            <ul>
+                <li><strong>NCLOC (Non-Comment Lines of Code):</strong> Jumlah baris instruksi logika program yang dieksekusi tanpa menghitung baris kosong dan komentar. Semakin proporsional NCLOC per berkas (&lt; 300 baris), semakin mudah dirawat.</li>
+                <li><strong>CCN (Cyclomatic Complexity Number):</strong> Jumlah jalur percabangan independen (if/else/switch/loop) dalam logika fungsi.
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>1 - 10: Rendah &amp; Aman</em> | 🟡 <em>11 - 20: Sedang (rawan bug)</em> | 🔴 <em>&gt; 20: Tinggi &amp; Kompleks (wajib modularisasi)</em></span>
+                </li>
+                <li><strong>MI (Maintainability Index, Skala 0 - 100):</strong> Indeks komprehensif kemudahan pemeliharaan kode berbasis perpaduan logaritma Halstead Volume, CCN, dan NCLOC.
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>Grade A (≥ 85): Bersih &amp; Sangat Mudah Dipelihara</em> | 🟡 <em>Grade B (65 - 84): Cukup</em> | 🔴 <em>Grade C (&lt; 65): Technical Debt Tinggi</em></span>
+                </li>
+                <li><strong>Smells (Code Smells):</strong> Deteksi gejala arsitektur buruk: <em>God Class</em> (kelas terlalu besar), <em>Fat Controller</em> (logika bertumpuk di controller), dan <em>Deep Nesting</em> (percabangan bersarang &gt; 4 level).</li>
+            </ul>
+        </div>
+
+        <div class="section-title">Daftar Temuan Code Smells &amp; Arsitektur</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align:center;">Severity</th>
+                    <th>Tipe Masalah</th>
+                    <th>Deskripsi</th>
+                    <th>Lokasi Berkas</th>
+                    <th>💡 Saran Perbaikan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ROWS_SMELLS}}
+            </tbody>
+        </table>
+
+        <div class="section-title">Rincian Metrik per Berkas Kode</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama Berkas</th>
+                    <th style="text-align:center;">Bahasa</th>
+                    <th style="text-align:right;">NCLOC</th>
+                    <th style="text-align:right;">CCN (Kompleksitas)</th>
+                    <th style="text-align:right;">MI (0-100)</th>
+                    <th style="text-align:center;">Smells</th>
+                    <th>💡 Saran Optimasi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ROWS_FILES}}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            Dihasilkan secara otomatis oleh <strong>GreenCode Profiler v1.8.0 (Rust Native Architecture)</strong>.
+        </div>
+    </div>
+</body>
+</html>

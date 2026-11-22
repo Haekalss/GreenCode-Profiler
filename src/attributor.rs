@@ -107,17 +107,7 @@ fn execute_http_request(url: &str, method: &str, body: Option<&str>, start_time:
         let mut status = 200;
 
         if let Ok(bytes_read) = stream.read(&mut buffer) {
-            if bytes_read > 0 {
-                let resp_str = String::from_utf8_lossy(&buffer[..bytes_read]);
-                if let Some(first_line) = resp_str.lines().next() {
-                    let parts: Vec<&str> = first_line.split_whitespace().collect();
-                    if parts.len() >= 2 {
-                        if let Ok(st) = parts[1].parse::<u16>() {
-                            status = st;
-                        }
-                    }
-                }
-            }
+            status = parse_http_status(&buffer[..bytes_read]);
         }
 
         let elapsed = start_time.elapsed().as_secs_f64();
@@ -125,4 +115,21 @@ fn execute_http_request(url: &str, method: &str, body: Option<&str>, start_time:
     }
 
     (500, start_time.elapsed().as_secs_f64())
+}
+
+fn parse_http_status(buffer: &[u8]) -> u16 {
+    if buffer.is_empty() {
+        return 200;
+    }
+    let resp_str = String::from_utf8_lossy(buffer);
+    let Some(first_line) = resp_str.lines().next() else {
+        return 200;
+    };
+    let parts: Vec<&str> = first_line.split_whitespace().collect();
+    if parts.len() >= 2 {
+        if let Ok(st) = parts[1].parse::<u16>() {
+            return st;
+        }
+    }
+    200
 }

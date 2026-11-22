@@ -55,3 +55,10 @@ reports/*.csv
 
 
 target/
+
+# Documents & Reports
+*.docx
+*.pdf
+~$*
+REFACTOR_PROGRESS.md
+
