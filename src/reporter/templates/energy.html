@@ -15,8 +15,8 @@
         .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }
         .card .val { font-size: 26px; font-weight: 700; color: #0f172a; margin-top: 8px; }
         .card .lbl { font-size: 13px; color: #64748b; font-weight: 500; text-transform: uppercase; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th, td { border: 1px solid #cbd5e1; padding: 10px 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; table-layout: fixed; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px 14px; word-wrap: break-word; }
         th { background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; }
         tr:nth-child(even) { background: #f8fafc; }
         .section-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 35px; margin-bottom: 15px; border-left: 4px solid #10b981; padding-left: 10px; }
@@ -178,13 +178,13 @@
         <table>
             <thead>
                 <tr>
-                    <th>Nama Berkas</th>
-                    <th style="text-align:center;">Bahasa</th>
-                    <th style="text-align:right;">NCLOC</th>
-                    <th style="text-align:right;">CCN (Kompleksitas)</th>
-                    <th style="text-align:right;">MI (0-100)</th>
-                    <th style="text-align:center;">Smells</th>
-                    <th>💡 Saran Optimasi</th>
+                    <th style="width:34%;">Nama Berkas</th>
+                    <th style="width:8%;text-align:center;">Bahasa</th>
+                    <th style="width:7%;text-align:right;">NCLOC</th>
+                    <th style="width:12%;text-align:right;">CCN (Kompleksitas)</th>
+                    <th style="width:9%;text-align:right;">MI (0-100)</th>
+                    <th style="width:6%;text-align:center;">Smells</th>
+                    <th style="width:24%;">💡 Saran Optimasi</th>
                 </tr>
             </thead>
             <tbody>

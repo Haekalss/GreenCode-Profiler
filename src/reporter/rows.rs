@@ -71,8 +71,8 @@ pub fn smell_row(smell: &Value) -> String {
                         <td style="text-align:center;"><span style="background:{};color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;">{}</span></td>
                         <td style="font-weight:600;">{}</td>
                         <td>{}</td>
-                        <td style="font-family:monospace;font-size:12px;">{}:{}</td>
-                        <td style="font-size:12px;max-width:300px;">{}</td>
+                        <td style="font-family:monospace;font-size:12px;word-break:break-all;max-width:280px;">{}:{}</td>
+                        <td style="font-size:12px;max-width:280px;">{}</td>
                     </tr>"#,
         severity_color(severity),
         severity,
@@ -91,13 +91,13 @@ pub fn file_row(file: &Value) -> String {
     let smells = file["code_smells"].as_array().map(|a| a.len()).unwrap_or(0);
     format!(
         r#"<tr>
-                        <td style="font-family:monospace;font-size:12px;">{}</td>
+                        <td style="font-family:monospace;font-size:12px;word-break:break-all;max-width:320px;">{}</td>
                         <td style="text-align:center;"><span style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">{}</span></td>
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:right;">{}</td>
                         <td style="text-align:center;">{}</td>
-                        <td style="font-size:12px;max-width:300px;">{}</td>
+                        <td style="font-size:12px;max-width:260px;">{}</td>
                     </tr>"#,
         text(file, "file_path"),
         text(file, "language"),
