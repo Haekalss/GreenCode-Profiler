@@ -43,7 +43,7 @@ impl ReportGenerator {
 
     pub fn open_in_browser<P: AsRef<Path>>(path: P) {
         let p = path.as_ref();
-        let path_str = p.to_string_lossy();
+        let path_str = p.to_string_lossy().into_owned();
         #[cfg(target_os = "windows")]
         {
             let _ = Command::new("cmd")
