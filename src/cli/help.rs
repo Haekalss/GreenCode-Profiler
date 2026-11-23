@@ -2,7 +2,7 @@
 
 pub fn print_banner() {
     println!("================================================================");
-    println!("   GREENCODE PROFILER v1.8.1 (Rust Native Architecture)         ");
+    println!("   GREEN PROFILER v1.8.1 (Rust Native Architecture)             ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -55,7 +55,7 @@ pub fn print_help() {
     println!("                        Jalankan profiling energi dan kualitas kode");
     println!("                        (--output: simpan laporan ke path kustom, JSON ikut)");
     println!("  ui                    Buka laporan HTML di peramban web");
-    println!("  version               Tampilkan versi GreenCode Profiler");
+    println!("  version               Tampilkan versi Green Profiler");
     println!("  help                  Tampilkan panduan bantuan ini\n");
     println!("Filter (boleh diulang, cocok case-insensitive pada path & nama):");
     println!("  --filter K   hanya endpoint yang mengandung K (logika OR)");

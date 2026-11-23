@@ -30,7 +30,7 @@ pub fn dispatch(args: &[String]) {
         "analyze" => analyze::execute(parse_flags(&args[2..])),
         "run" => execute_run(&args[2..]),
         "ui" => open_reports(),
-        "version" | "-v" | "--version" => println!("GreenCode Profiler v1.8.1"),
+        "version" | "-v" | "--version" => println!("Green Profiler v1.8.1"),
         "help" | "-h" | "--help" => print_help(),
         other => {
             println!("[GreenCode] Perintah tidak dikenal: '{}'", other);

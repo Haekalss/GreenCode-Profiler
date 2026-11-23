@@ -1,24 +1,26 @@
 <p align="center">
-  <img src="assets/logo.png" alt="GreenCode Profiler Logo" width="180" />
+  <img src="assets/logo.png" alt="Green Profiler Logo" width="180" />
 </p>
 
-# GreenCode Profiler
+# Green Profiler
 
 **Universal Process-Level Energy & Code Quality Profiler for Modern Web Applications**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.100+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Runtime: Standalone](https://img.shields.io/badge/Runtime-Zero%20Dependency-10b981.svg)]()
-[![Distribution: NPM](https://img.shields.io/badge/NPM-Launcher-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Website](https://img.shields.io/badge/Website-greenprofiler.github.io-10b981.svg)](https://greenprofiler.github.io)
 [![Version](https://img.shields.io/badge/Version-1.8.1-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
 
-GreenCode Profiler (GCP) v1.8.1 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
+Green Profiler v1.8.1 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
+
+🌐 **Website Resmi & Instalasi Cepat**: [https://greenprofiler.github.io](https://greenprofiler.github.io)
 
 ---
 
 ## Gambaran Umum
 
-GreenCode Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Pengguna akhir (_end-user_, auditor, atau pengembang aplikasi) **tidak diwajibkan** memasang compiler Rust, Python runtime, atau PHP runtime di sistem operasi mereka. Aplikasi didistribusikan dalam bentuk biner mandiri (_standalone executable_) siap pakai.
+Green Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Pengguna akhir (_end-user_, auditor, atau pengembang aplikasi) **tidak diwajibkan** memasang compiler Rust, Python runtime, atau PHP runtime di sistem operasi mereka. Aplikasi didistribusikan dalam bentuk biner mandiri (_standalone executable_) siap pakai.
 
 ### Fitur Utama
 
@@ -44,13 +46,16 @@ Pilih salah satu metode instalasi yang sesuai dengan alur kerja Anda:
 
 Metode ini **sama sekali tidak membutuhkan instalasi dependensi apapun** (tidak perlu Node.js, Python, atau Rust). Sangat cocok untuk pengguna umum, penguji, atau developer bahasa apapun.
 
-1. Unduh arsip rilis resmi: [GreenCode-v1.8.1-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest).
+1. Unduh arsip rilis resmi: [GreenProfiler-v1.8.1-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest) (atau [GreenCode-v1.8.1-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest)).
 2. Ekstrak arsip tersebut untuk mendapatkan berkas `greencode.exe`.
 3. Tempatkan berkas `greencode.exe` di direktori utama (_root_) proyek web yang akan diuji.
 4. Pastikan server aplikasi web Anda sedang berjalan (contoh: port 3000 atau port 8000).
 5. Jalankan perintah berikut melalui terminal (PowerShell / Command Prompt):
 
 ```powershell
+# Quick Install via PowerShell (Otomatis unduh & ekstrak):
+irm https://github.com/Haekalss/GreenCode-Profiler/releases/latest/download/GreenProfiler-v1.8.1-windows-x64.zip -OutFile gp.zip; Expand-Archive gp.zip -DestinationPath .
+
 # 1. Inisialisasi konfigurasi dan deteksi rute otomatis
 .\greencode.exe init
 
@@ -64,7 +69,7 @@ Laporan HTML hasil audit akan dibuat di `reports/greencode_report.html` dan otom
 
 ### Metode 2: Instalasi Global Melalui Package Manager
 
-GreenCode Profiler menyediakan pembungkus (_launcher_) di berbagai manajer paket agar Anda dapat menggunakannya sebagai perintah global di sistem sesuai preferensi ekosistem:
+Green Profiler menyediakan pembungkus (_launcher_) di berbagai manajer paket agar Anda dapat menggunakannya sebagai perintah global di sistem sesuai preferensi ekosistem:
 
 #### Opsi A: Node.js (npm)
 
@@ -102,7 +107,7 @@ greencode run
 
 ### Metode 3: Kompilasi dari Kode Sumber (Khusus Pengembang Rust)
 
-Jika Anda ingin memodifikasi atau mengembangkan modul inti GreenCode Profiler:
+Jika Anda ingin memodifikasi atau mengembangkan modul inti Green Profiler:
 
 ```bash
 git clone https://github.com/Haekalss/GreenCode-Profiler.git
@@ -186,17 +191,22 @@ Laporan HTML (`reports/greencode_report.html`) menyajikan metrik evaluasi dengan
 ```
 GreenCode-Profiler/
 ├── src/
-│   ├── main.rs         - CLI dispatch, konfigurasi, dan alur eksekusi
+│   ├── main.rs         - Entry point & CLI dispatcher
 │   ├── engine.rs       - ProcessEnergyEngine (Windows FFI / Linux procfs)
-│   ├── detector.rs     - RuntimeDetector dan RouteDiscoverer
-│   ├── analyzer.rs     - CodeQualityAnalyzer (NCLOC, CCN, MI, Smells)
 │   ├── attributor.rs   - ModuleAttributor dan HTTP tracing berbasis TcpStream
 │   ├── correlator.rs   - Korelasi data energi dan metrik kualitas kode
-│   ├── reporter.rs     - Generator dokumen HTML dan JSON
-│   └── logo_base64.txt - Aset logo tersemat (offline base64)
+│   ├── analyzer/       - Modul analisis kualitas kode statis (NCLOC, CCN, MI, Smells)
+│   ├── cli/            - Penanganan argumen CLI dan panduan help interaktif
+│   ├── commands/       - Implementasi subperintah CLI (init, run, analyze, routes, detect, ui)
+│   ├── detector/       - RuntimeDetector dan RouteDiscoverer multi-bahasa
+│   ├── php_auditor/    - Audit efisiensi runtime PHP & Green Extensions
+│   ├── reporter/       - Generator dokumen laporan HTML terstruktur dan JSON
+│   └── logo_base64.txt - Aset logo tersemat offline (Base64)
 ├── bin/
 │   ├── greencode.js    - Skrip runner untuk distribusi NPM
 │   └── greencode.exe   - Biner kompilasi rilis Windows x64
+├── assets/
+│   └── logo.png        - Aset gambar logo Green Profiler resmi
 ├── Cargo.toml          - Konfigurasi dependensi murni Rust
 └── LICENSE             - Lisensi sumber terbuka MIT
 ```
