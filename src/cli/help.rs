@@ -2,7 +2,7 @@
 
 pub fn print_banner() {
     println!("================================================================");
-    println!("   GREEN PROFILER v1.8.1 (Rust Native Architecture)             ");
+    println!("   GREEN PROFILER v1.8.2 (Rust Native Architecture)             ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -20,14 +20,14 @@ pub fn get_simple_timestamp() -> String {
 }
 
 pub fn print_no_route_hints(dir: &str) {
-    println!("[GreenCode] 0 rute ditemukan di '{}'.", dir);
+    println!("[GreenProfiler] 0 rute ditemukan di '{}'.", dir);
     println!("            -> Tidak ada penanda project di folder ini");
     println!("               (package.json / composer.json / go.mod /");
     println!("                Cargo.toml / requirements.txt / manage.py)");
     println!("            -> Untuk monorepo, jalankan dari root:");
-    println!("                 greencode routes");
+    println!("                 greenprofiler routes");
     println!("            -> Atau arahkan ke sub-project (contoh):");
-    println!("                 greencode routes ./frontend");
+    println!("                 greenprofiler routes ./frontend");
 }
 
 pub fn print_filter_keywords(filters: &[String], excludes: &[String]) {
@@ -41,7 +41,8 @@ pub fn print_filter_keywords(filters: &[String], excludes: &[String]) {
 
 pub fn print_help() {
     print_banner();
-    println!("Penggunaan: greencode <command> [options]\n");
+    println!("Penggunaan: greenprofiler <command> [options]");
+    println!("            gp <command> [options]           (alias singkat)\n");
     println!("Perintah Utama:");
     println!("  init [--force] [--filter K] [--exclude K]");
     println!("                        Inisialisasi greencode.json + deteksi rute otomatis");
@@ -57,11 +58,14 @@ pub fn print_help() {
     println!("  ui                    Buka laporan HTML di peramban web");
     println!("  version               Tampilkan versi Green Profiler");
     println!("  help                  Tampilkan panduan bantuan ini\n");
+    println!("Catatan Alias:");
+    println!("  Perintah 'greenprofiler' dapat dipanggil dengan alias singkat 'gp'");
+    println!("  (mis. 'gp run' atau 'gp init'). Kompatibilitas 'greencode' tetap didukung.\n");
     println!("Filter (boleh diulang, cocok case-insensitive pada path & nama):");
     println!("  --filter K   hanya endpoint yang mengandung K (logika OR)");
     println!("  --exclude K  buang endpoint yang mengandung K\n");
     println!("Contoh:");
-    println!("  greencode routes --filter api");
-    println!("  greencode run --filter api --exclude admin");
-    println!("  greencode init --filter api --filter data --limit 20\n");
+    println!("  gp routes --filter api");
+    println!("  greenprofiler run --filter api --exclude admin");
+    println!("  gp init --filter api --filter data --limit 20\n");
 }

@@ -14,7 +14,7 @@ pub fn execute(language: &str, port: Option<u16>) {
 
 fn print_header(language: &str, port: Option<u16>) {
     println!("================================================================");
-    println!("      GREENCODE RUNTIME PROCESS DETECTOR (Rust Engine)          ");
+    println!("      GREEN PROFILER RUNTIME PROCESS DETECTOR (Rust Engine)          ");
     println!("================================================================");
     println!("Target Language : {}", language.to_uppercase());
     let port_label = port

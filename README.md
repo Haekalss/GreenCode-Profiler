@@ -7,140 +7,94 @@
 **Universal Process-Level Energy & Code Quality Profiler for Modern Web Applications**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
-[![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.100+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.75+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Runtime: Standalone](https://img.shields.io/badge/Runtime-Zero%20Dependency-10b981.svg)]()
 [![Website](https://img.shields.io/badge/Website-greenprofiler.github.io-10b981.svg)](https://greenprofiler.github.io)
-[![Version](https://img.shields.io/badge/Version-1.8.1-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
+[![Version](https://img.shields.io/badge/Version-1.8.2-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
 
-Green Profiler v1.8.1 adalah framework audit efisiensi energi perangkat lunak (_Green Software Engineering_), arsitektur kode (_Static Code Quality Analysis_), dan runtime environment audit (_PHP Extensions & Green Optimization_). Dibangun dengan arsitektur **Rust Native**, framework ini mengisolasi waktu CPU kernel dari bias jaringan I/O dan menghasilkan metrik komputasi yang objektif tanpa membutuhkan interpreter atau runtime eksternal.
+Green Profiler v1.8.2 is an advanced, high-performance auditing framework for software energy efficiency (*Green Software Engineering*), static architectural quality analysis, and runtime environment efficiency. Built in **Pure Native Rust**, it isolates CPU kernel execution time from I/O and network wait bias, delivering deterministic computational metrics without requiring any external interpreter or runtime dependency.
 
-🌐 **Website Resmi & Instalasi Cepat**: [https://greenprofiler.github.io](https://greenprofiler.github.io)
-
----
-
-## Gambaran Umum
-
-Green Profiler dirancang dengan prinsip **Zero-Dependency Runtime**. Pengguna akhir (_end-user_, auditor, atau pengembang aplikasi) **tidak diwajibkan** memasang compiler Rust, Python runtime, atau PHP runtime di sistem operasi mereka. Aplikasi didistribusikan dalam bentuk biner mandiri (_standalone executable_) siap pakai.
-
-### Fitur Utama
-
-1. **Rust Native Engine:** Menggunakan abstraksi berbiaya nol (_zero-cost abstractions_) dengan konsumsi memori minimal dan kecepatan eksekusi tinggi.
-2. **Isolasi Bias Jaringan (I/O Wait Isolation):** Pengukuran energi didasarkan pada waktu aktif kernel CPU ($t_{\text{user}} + t_{\text{system}}$) melalui Windows NT API (`GetProcessTimes`) dan Linux `/proc/[PID]/stat`, sehingga kebal terhadap latensi koneksi internet atau antrean query basis data.
-3. **Analisis Kualitas Kode Bawaan:** Memeriksa Cyclomatic Complexity (CCN), Maintainability Index (MI), Non-Comment Lines of Code (NCLOC), serta mendeteksi _Architectural Code Smells_ (_God Class_, _Fat Controller_, _Deep Nesting_).
-4. **PHP Runtime & Green Extension Audit:** Mengaudit ketersediaan ekstensi PHP kritis (MySQL, OpenSSL, cURL), akselerator penghemat siklus CPU (_Zend OPcache_, _JIT Compiler_), dan peringatan ekstensi boros daya (_Xdebug_).
-5. **Dukungan Monorepo & Multi-Service:** Mendeteksi dan memprofil arsitektur monorepo (Frontend Next.js dan Backend Laravel) secara simultan.
-6. **Bahasa-Agnostik:** Bekerja dari luar proses aplikasi target (_external process profiling_). Mendukung Node.js, PHP, Python, Go, dan Rust.
-7. **Laporan HTML Komprehensif:** Menghasilkan dokumen laporan profesional berlatar terang dengan logo tersemat (_offline base64_), indikator ambang batas dinamis, rekomendasi runtime PHP, dan deskripsi parameter teknis.
-8. **Deteksi Rute Lintas Bahasa Tanpa Batas:** Memindai seluruh rute aplikasi tanpa batas jumlah, termasuk rute bersarang dan _prefix group_, untuk Node.js (Next.js, Express, NestJS), PHP (Laravel), Python (Flask, FastAPI, Django), Go (net/http, gin, chi), dan Rust (axum, actix). Rute berparameter otomatis dikecualikan dari _profiling_ agar tidak menghasilkan HTTP 404.
-9. **Laporan Teragregasi per Endpoint:** Setiap endpoint ditampilkan dalam **satu baris berisi rata-rata** dari seluruh pengulangan pengukuran, sehingga laporan tidak mengulang endpoint sebanyak jumlah run.
-10. **Filter Endpoint & Kode (`--filter` / `--exclude`):** Menyaring endpoint **dan file kode** dengan kata kunci yang sama — boleh diulang (logika OR), cocok tanpa memedulikan huruf besar/kecil pada path maupun isi file. Berlaku untuk `routes`, `init`, `run`, dan `analyze`; penyaringan dilakukan *in-memory* sehingga `greencode.json` tidak berubah. Pada monorepo, semua `source_dirs` (frontend + backend) tetap ditelusuri sehingga kedua bahasa ikut terdeteksi, lalu file disaring per kata kunci.
-11. **Output Laporan Kustom (`--output`):** Menyimpan laporan ke path pilihan, mis. `greencode run --filter smki --output reports/smki.html`. Berkas JSON otomatis memakai nama dasar yang sama (`reports/smki.json`), folder tujuan dibuat bila belum ada, dan laporan default tidak tertimpa — sehingga hasil beberapa filter bisa disimpan berdampingan.
+🌐 **Official Website & Installation Guide**: [https://greenprofiler.github.io](https://greenprofiler.github.io)
 
 ---
 
-## Panduan Instalasi dan Penggunaan
+## Overview
 
-Pilih salah satu metode instalasi yang sesuai dengan alur kerja Anda:
+Green Profiler is engineered with a strict **Zero-Dependency Runtime** philosophy. End users, security auditors, and software engineers **do not need** to install a Rust toolchain, Python runtime, Node.js, or PHP on their host machines to profile their systems. The profiler is shipped as a single, lightweight standalone binary.
 
-### Metode 1: Biner Portabel (Rekomendasi Utama - Tanpa Node.js / Zero Dependency)
+### Key Features
 
-Metode ini **sama sekali tidak membutuhkan instalasi dependensi apapun** (tidak perlu Node.js, Python, atau Rust). Sangat cocok untuk pengguna umum, penguji, atau developer bahasa apapun.
+1. **Rust Native Engine:** Ultra-low CPU and memory overhead with zero-cost abstractions and sub-millisecond dispatching.
+2. **I/O Wait Isolation:** Measures energy strictly from active CPU kernel time ($t_{\text{user}} + t_{\text{system}}$) via Windows NT Kernel APIs (`GetProcessTimes`) and Linux `/proc/[PID]/stat`, completely eliminating distortions caused by network latency or database query queues.
+3. **Static Code Quality Inspection:** Evaluates Cyclomatic Complexity (CCN), Maintainability Index (MI), Non-Comment Lines of Code (NCLOC), and flags architectural code smells (*God Class*, *Fat Controller*, *Deep Nesting*).
+4. **PHP Runtime & Green Extension Auditing:** Audits availability of critical PHP extensions (MySQL, OpenSSL, cURL), energy-saving CPU cycle accelerators (*Zend OPcache*, *JIT Compiler*), and alerts against energy-expensive profilers (*Xdebug*).
+5. **Monorepo & Multi-Service Support:** Discovers and benchmarks complex fullstack monorepos (e.g., Next.js frontend + Laravel backend) simultaneously.
+6. **Language-Agnostic External Profiling:** Runs outside the target application process. Natively benchmarks **Node.js** (Next.js, Express, NestJS), **PHP** (Laravel, Lumen), **Python** (FastAPI, Flask, Django), **Go** (Gin, Chi, net/http), and **Rust** (Actix, Axum).
+7. **Comprehensive HTML Reports:** Generates polished, responsive dashboard reports with embedded offline assets, dynamic threshold badges, runtime recommendations, and technical parameters.
+8. **Automated Cross-Language Route Discovery:** Scans source code routes automatically across route groups, nested handlers, and file-based routers. Parameterized routes are gracefully skipped during initial benchmark suites to prevent HTTP 404 false positives.
+9. **Endpoint-Aggregated Metrics:** Consolidates multiple benchmark iterations into single-row averages per endpoint, preventing repetitive, bloated reports.
+10. **Dual CLI Commands:** Supports both canonical `greenprofiler` and ergonomic short alias `gp`.
+11. **Filtering & Custom Outputs:** Supports `--filter` and `--exclude` flags for targeted endpoint and file analysis, along with `--output` for side-by-side comparative benchmarking.
 
-1. Unduh arsip rilis resmi: [GreenProfiler-v1.8.1-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest) (atau [GreenCode-v1.8.1-windows-x64.zip](https://github.com/Haekalss/GreenCode-Profiler/releases/latest)).
-2. Ekstrak arsip tersebut untuk mendapatkan berkas `greencode.exe`.
-3. Tempatkan berkas `greencode.exe` di direktori utama (_root_) proyek web yang akan diuji.
-4. Pastikan server aplikasi web Anda sedang berjalan (contoh: port 3000 atau port 8000).
-5. Jalankan perintah berikut melalui terminal (PowerShell / Command Prompt):
+---
 
+## Quick Installation (One-Line Script)
+
+Choose your operating system:
+
+### 1. Windows (PowerShell)
+Run in PowerShell to automatically download, extract, and register the binary to your user `PATH`:
 ```powershell
-# Quick Install via PowerShell (Otomatis unduh & ekstrak):
-irm https://github.com/Haekalss/GreenCode-Profiler/releases/latest/download/GreenProfiler-v1.8.1-windows-x64.zip -OutFile gp.zip; Expand-Archive gp.zip -DestinationPath .
-
-# 1. Inisialisasi konfigurasi dan deteksi rute otomatis
-.\greencode.exe init
-
-# 2. Jalankan audit energi dan kualitas kode
-.\greencode.exe run
+irm https://greenprofiler.github.io/install/install.ps1 | iex
 ```
 
-Laporan HTML hasil audit akan dibuat di `reports/greencode_report.html` dan otomatis terbuka di peramban web.
-
----
-
-### Metode 2: Instalasi Global Melalui Package Manager
-
-Green Profiler menyediakan pembungkus (_launcher_) di berbagai manajer paket agar Anda dapat menggunakannya sebagai perintah global di sistem sesuai preferensi ekosistem:
-
-#### Opsi A: Node.js (npm)
-
-```bash
-npm install -g --force git+https://github.com/Haekalss/GreenCode-Profiler.git
+### 2. Windows (Command Prompt / CMD)
+Run in Command Prompt:
+```cmd
+curl -fsSL https://greenprofiler.github.io/install/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
-#### Opsi B: Python (pip)
-
+### 3. macOS & Linux (Terminal)
+Run in Terminal (supports Linux x64, macOS Apple Silicon M1/M2/M3/M4, and macOS Intel):
 ```bash
-pip install git+https://github.com/Haekalss/GreenCode-Profiler.git
+curl -fsSL https://greenprofiler.github.io/install/install.sh | bash
 ```
 
-#### Opsi C: PHP (Composer Dev Tool)
-
+Once installed, open a new terminal window. You can immediately invoke either `greenprofiler` or `gp`:
 ```bash
-composer require --dev greencode/profiler
-# Jalankan via: ./vendor/bin/greencode
-```
+# 1. Initialize routes and configuration automatically
+greenprofiler init
 
-#### Opsi D: Go (go install)
-
-```bash
-go install github.com/Haekalss/GreenCode-Profiler/cmd/greencode@latest
-```
-
-Setelah terpasang, perintah `greencode` (atau `./vendor/bin/greencode` pada PHP) dapat dipanggil langsung dari direktori mana saja:
-
-```bash
-greencode init
-greencode run
+# 2. Run energy & code quality profiling
+greenprofiler run
 ```
 
 ---
 
-### Metode 3: Kompilasi dari Kode Sumber (Khusus Pengembang Rust)
+## CLI Command Reference
 
-Jika Anda ingin memodifikasi atau mengembangkan modul inti Green Profiler:
+Both `greenprofiler` and `gp` accept identical flags and subcommands:
 
-```bash
-git clone https://github.com/Haekalss/GreenCode-Profiler.git
-cd GreenCode-Profiler
-cargo build --release
-```
-
-Berkas biner hasil kompilasi tersedia di `target/release/greencode.exe`.
-
----
-
-## Daftar Perintah CLI
-
-| Perintah            | Parameter                   | Deskripsi                                                                |
-| ------------------- | --------------------------- | ------------------------------------------------------------------------ |
-| `greencode init`    | `[--force] [--filter K] [--exclude K]` | Membuat `greencode.json` dengan deteksi rute otomatis (tersaring) |
-| `greencode run`     | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Menjalankan profiling energi dan kualitas struktur kode |
-| `greencode analyze` | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Menjalankan analisis kualitas kode statis (NCLOC, CCN, MI, Smells) dengan filter file |
-| `greencode routes`  | `[dir] [--limit N] [--filter K] [--exclude K]` | Memindai seluruh rute nyata dari kode sumber (semua bahasa; `--limit` membatasi jumlah) |
-| `greencode detect`  | `[language]`                | Memindai proses server aktif beserta nomor Process ID (PID) dan port     |
-| `greencode ui`      | -                           | Membuka laporan dashboard HTML hasil profiling terakhir di peramban      |
-| `greencode version` | -                           | Menampilkan informasi versi dan arsitektur engine                        |
-| `greencode help`    | `[cmd]`                     | Menampilkan panduan penggunaan perintah                                  |
+| Command | Alias | Arguments & Flags | Description |
+| :--- | :--- | :--- | :--- |
+| `greenprofiler init` | `gp init` | `[--force] [--filter K] [--exclude K]` | Generate `greencode.json` configuration with automatic route discovery |
+| `greenprofiler run` | `gp run` | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Run energy profiling and code architecture benchmarks |
+| `greenprofiler analyze` | `gp analyze` | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Run static code quality analysis (NCLOC, CCN, MI, Smells) |
+| `greenprofiler routes` | `gp routes` | `[dir] [--limit N] [--filter K] [--exclude K]` | Discover and list all valid application routes from source code |
+| `greenprofiler detect` | `gp detect` | `[language]` | Detect active application server processes, PIDs, and bound ports |
+| `greenprofiler ui` | `gp ui` | - | Open the latest HTML report in your default web browser |
+| `greenprofiler version`| `gp version`| - | Display version and engine architecture information |
+| `greenprofiler help` | `gp help` | `[command]` | Show interactive command help and parameter details |
 
 ---
 
-## Struktur Konfigurasi (`greencode.json`)
+## Configuration Schema (`greencode.json`)
 
-Contoh konfigurasi standar untuk lingkungan monorepo:
+Example configuration for a fullstack monorepo application:
 
 ```json
 {
-  "project_name": "Full-Stack Monorepo (frontend + backend)",
+  "project_name": "Fullstack Platform",
   "runtime": "fullstack",
   "base_url": "http://127.0.0.1:8000",
   "services": {
@@ -152,18 +106,18 @@ Contoh konfigurasi standar untuk lingkungan monorepo:
   "cpu_tdp_watts": 15.0,
   "endpoints": [
     {
-      "name": "[FE] Halaman Dashboard",
+      "name": "[FE] Dashboard Overview",
       "method": "GET",
       "path": "/admin/dashboard",
       "service": "frontend",
       "url": "http://127.0.0.1:3000/admin/dashboard"
     },
     {
-      "name": "[BE] API Services",
+      "name": "[BE] User Data API",
       "method": "GET",
-      "path": "/api/services",
+      "path": "/api/users",
       "service": "backend",
-      "url": "http://127.0.0.1:8000/api/services"
+      "url": "http://127.0.0.1:8000/api/users"
     }
   ]
 }
@@ -171,48 +125,72 @@ Contoh konfigurasi standar untuk lingkungan monorepo:
 
 ---
 
-## Parameter dan Indikator Hasil Audit
+## Audit Evaluation Metrics & Thresholds
 
-Laporan HTML (`reports/greencode_report.html`) menyajikan metrik evaluasi dengan klasifikasi ambang batas objektif:
+Generated HTML reports (`reports/greencode_report.html`) classify metrics against objective engineering standards:
 
-| Parameter                 | Satuan / Skala  | Ambang Batas Optimal   | Keterangan Teknis                                                                                  |
-| ------------------------- | --------------- | ---------------------- | -------------------------------------------------------------------------------------------------- |
-| **Total Energi**          | Joule (J) / kWh | < 2.0 J per transaksi  | Total energi listrik murni yang ditarik thread CPU ($E = P_{\text{avg}} \times t_{\text{active}}$) |
-| **Waktu CPU Aktif**       | Detik (s)       | Sesuai beban logika    | Durasi aktif prosesor mengeksekusi instruksi, bebas dari waktu tunggu I/O                          |
-| **Green Score**           | 0 – 100         | $\ge$ 85 (Optimal)     | Indeks efisiensi rasio konsumsi energi terhadap throughput dan latensi                             |
-| **CCN**                   | Angka Bulat     | 1 – 10 (Rendah / Aman) | Cyclomatic Complexity Number, mengukur jalur percabangan logika independen                         |
-| **Maintainability Index** | 0 – 100         | $\ge$ 85 (Grade A)     | Indeks kemudahan pemeliharaan berbasis perpaduan logaritma Halstead, CCN, dan NCLOC                |
-| **Code Smells**           | Jumlah Temuan   | 0 temuan               | Deteksi pelanggaran arsitektur (_God Class_, _Fat Controller_, _Deep Nesting_)                     |
+| Metric | Unit / Scale | Target Threshold | Technical Meaning |
+| :--- | :--- | :--- | :--- |
+| **Total Energy** | Joules (J) / kWh | < 2.0 J per request | Net active electrical energy drawn by the server CPU ($E = P_{\text{avg}} \times t_{\text{active}}$) |
+| **Active CPU Time** | Seconds (s) | Workload-dependent | Real execution time on CPU cores, fully isolated from I/O wait times |
+| **Green Score** | 0 – 100 | $\ge$ 85 (Optimal) | Algorithmic ratio score of computational energy efficiency vs throughput & latency |
+| **CCN** | Integer | 1 – 10 (Low / Healthy) | Cyclomatic Complexity Number measuring independent code paths |
+| **Maintainability Index** | 0 – 100 | $\ge$ 85 (Grade A) | Composite maintainability metric based on Halstead volume, CCN, and NCLOC |
+| **Code Smells** | Count | 0 findings | Architectural smell violations (*God Class*, *Fat Controller*, *Deep Nesting*) |
 
 ---
 
-## Arsitektur Repositori
+## Building from Source
+
+To compile the binaries directly from source:
+
+```bash
+git clone https://github.com/Haekalss/GreenCode-Profiler.git
+cd GreenCode-Profiler
+cargo build --release
+```
+
+The compiled release binary will be available at:
+* Windows: `target/release/greenprofiler.exe`
+* Linux / macOS: `target/release/greenprofiler`
+
+---
+
+## Repository Structure
 
 ```
 GreenCode-Profiler/
-├── src/
-│   ├── main.rs         - Entry point & CLI dispatcher
-│   ├── engine.rs       - ProcessEnergyEngine (Windows FFI / Linux procfs)
-│   ├── attributor.rs   - ModuleAttributor dan HTTP tracing berbasis TcpStream
-│   ├── correlator.rs   - Korelasi data energi dan metrik kualitas kode
-│   ├── analyzer/       - Modul analisis kualitas kode statis (NCLOC, CCN, MI, Smells)
-│   ├── cli/            - Penanganan argumen CLI dan panduan help interaktif
-│   ├── commands/       - Implementasi subperintah CLI (init, run, analyze, routes, detect, ui)
-│   ├── detector/       - RuntimeDetector dan RouteDiscoverer multi-bahasa
-│   ├── php_auditor/    - Audit efisiensi runtime PHP & Green Extensions
-│   ├── reporter/       - Generator dokumen laporan HTML terstruktur dan JSON
-│   └── logo_base64.txt - Aset logo tersemat offline (Base64)
-├── bin/
-│   ├── greencode.js    - Skrip runner untuk distribusi NPM
-│   └── greencode.exe   - Biner kompilasi rilis Windows x64
+├── .github/
+│   └── workflows/
+│       └── release.yml     - Automated cross-platform release builder
 ├── assets/
-│   └── logo.png        - Aset gambar logo Green Profiler resmi
-├── Cargo.toml          - Konfigurasi dependensi murni Rust
-└── LICENSE             - Lisensi sumber terbuka MIT
+│   └── logo.png            - Official Green Profiler branding logo
+├── bin/
+│   └── greenprofiler.exe   - Native release binary
+├── install/
+│   ├── install.ps1         - PowerShell installer for Windows
+│   ├── install.cmd         - Command Prompt installer for Windows
+│   └── install.sh          - Shell installer for macOS & Linux
+├── src/
+│   ├── main.rs             - Entry point & CLI dispatcher
+│   ├── engine.rs           - ProcessEnergyEngine (Windows FFI / Linux procfs)
+│   ├── attributor.rs       - ModuleAttributor & native TcpStream tracer
+│   ├── correlator.rs       - Energy & code quality correlation engine
+│   ├── analyzer/           - Static code quality analyzer (NCLOC, CCN, MI, Smells)
+│   ├── cli/                - Flag parser, filter logic, and interactive help
+│   ├── commands/           - Subcommand implementations (init, run, analyze, routes, detect, ui)
+│   ├── detector/           - Runtime detector & multi-language route discovery
+│   ├── php_auditor/        - PHP runtime & Green Extension audit module
+│   ├── reporter/           - Structured HTML & JSON report generator
+│   └── logo_base64.txt     - Embedded Base64 logo for offline reports
+├── examples/               - Sample configuration files for Next.js, Laravel, FastAPI, etc.
+├── Cargo.toml              - Rust manifest & build targets (greenprofiler, gp)
+├── LICENSE                 - MIT License
+└── README.md               - Project documentation
 ```
 
 ---
 
-## Lisensi
+## License
 
-Proyek ini didistribusikan di bawah lisensi terbuka [MIT License](LICENSE).
+This project is licensed under the terms of the [MIT License](LICENSE).

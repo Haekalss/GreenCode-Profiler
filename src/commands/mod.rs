@@ -30,10 +30,10 @@ pub fn dispatch(args: &[String]) {
         "analyze" => analyze::execute(parse_flags(&args[2..])),
         "run" => execute_run(&args[2..]),
         "ui" => open_reports(),
-        "version" | "-v" | "--version" => println!("Green Profiler v1.8.1"),
+        "version" | "-v" | "--version" => println!("Green Profiler v1.8.2"),
         "help" | "-h" | "--help" => print_help(),
         other => {
-            println!("[GreenCode] Perintah tidak dikenal: '{}'", other);
+            println!("[GreenProfiler] Perintah tidak dikenal: '{}'", other);
             println!("            Gunakan 'greencode help' untuk melihat daftar perintah.");
         }
     }
@@ -56,5 +56,5 @@ fn open_reports() {
         ReportGenerator::open_in_browser(path);
         return;
     }
-    println!("[GreenCode] Laporan belum dibuat. Jalankan 'greencode run' terlebih dahulu.");
+    println!("[GreenProfiler] Laporan belum dibuat. Jalankan 'greenprofiler run' terlebih dahulu.");
 }

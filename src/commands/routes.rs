@@ -1,4 +1,4 @@
-//! `greencode routes`: discover and print real application routes.
+//! `greenprofiler routes`: discover and print real application routes.
 
 use crate::cli::{apply_filters, print_filter_keywords, print_no_route_hints, CliFlags};
 use crate::detector::{RouteDiscoverer, RouteEndpoint};
@@ -36,7 +36,7 @@ fn print_header() {
 fn print_missing_path(path: &str) {
     println!("[GreenError] Folder tidak ditemukan: {}", path);
     println!("            Periksa kembali path, atau jalankan dari root monorepo:");
-    println!("              greencode routes");
+    println!("              greenprofiler routes");
     println!("================================================================\n");
 }
 
@@ -63,7 +63,7 @@ fn print_count(found: usize, total: usize, filtered: bool) {
 }
 
 fn print_no_match(flags: &CliFlags) {
-    println!("[GreenCode] 0 rute cocok dengan --filter / --exclude.");
+    println!("[GreenProfiler] 0 rute cocok dengan --filter / --exclude.");
     println!("            Kata kunci yang dipakai:");
     print_filter_keywords(&flags.filters, &flags.excludes);
     println!("================================================================\n");

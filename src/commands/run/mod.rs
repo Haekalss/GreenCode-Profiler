@@ -1,4 +1,4 @@
-//! `greencode run`: full energy & code-quality profiling orchestration.
+//! `greenprofiler run`: full energy & code-quality profiling orchestration.
 
 pub mod aggregate;
 pub mod profiler;
@@ -14,8 +14,8 @@ use std::path::Path;
 
 pub fn execute(config_path: &str, flags: CliFlags) {
     if !Path::new(config_path).exists() {
-        println!("[GreenCode] Berkas konfigurasi '{}' tidak ditemukan.", config_path);
-        println!("            Jalankan 'greencode init' untuk membuatnya otomatis.");
+        println!("[GreenProfiler] Berkas konfigurasi '{}' tidak ditemukan.", config_path);
+        println!("            Jalankan 'greenprofiler init' untuk membuatnya otomatis.");
         return;
     }
 
@@ -37,11 +37,11 @@ pub fn execute(config_path: &str, flags: CliFlags) {
 
     let pids = RuntimeDetector::find_pids(runtime, None);
     if pids.is_empty() {
-        println!("[GreenCode] PERINGATAN: Tidak ada proses {} terdeteksi.", runtime.to_uppercase());
+        println!("[GreenProfiler] PERINGATAN: Tidak ada proses {} terdeteksi.", runtime.to_uppercase());
         println!("            Pastikan server aplikasi Anda sudah dijalankan.");
         return;
     }
-    println!("[GreenCode] Terhubung ke {} proses aktif: PID {:?}", pids.len(), pids);
+    println!("[GreenProfiler] Terhubung ke {} proses aktif: PID {:?}", pids.len(), pids);
 
     let engine = ProcessEnergyEngine::new(pids, cpu_tdp);
     let mut attributor = ModuleAttributor::new(&engine);
@@ -79,7 +79,7 @@ fn prepare_endpoints(cfg: &Value, flags: &CliFlags, config_path: &str) -> Option
 
     if flags.has_filter() {
         println!(
-            "[GreenCode] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
+            "[GreenProfiler] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
             filtered.len(),
             total_before,
             config_path
@@ -88,7 +88,7 @@ fn prepare_endpoints(cfg: &Value, flags: &CliFlags, config_path: &str) -> Option
             println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
             println!("            Kata kunci yang dipakai:");
             print_filter_keywords(&flags.filters, &flags.excludes);
-            println!("            Jalankan 'greencode routes' untuk melihat daftar endpoint.");
+            println!("            Jalankan 'greenprofiler routes' untuk melihat daftar endpoint.");
             return None;
         }
     }

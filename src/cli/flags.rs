@@ -72,5 +72,5 @@ fn record_positional(flags: &mut CliFlags, arg: &str) {
         flags.positional.push(arg.to_string());
         return;
     }
-    println!("[GreenCode] Flag tidak dikenal diabaikan: {}", arg);
+    println!("[GreenProfiler] Flag tidak dikenal diabaikan: {}", arg);
 }

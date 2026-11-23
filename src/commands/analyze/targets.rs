@@ -34,7 +34,7 @@ fn endpoint_filter_matches(config_value: &Value, flags: &CliFlags, path: &str) -
     let total = all.len();
     let matched = apply_filters(all, &flags.filters, &flags.excludes);
     println!(
-        "[GreenCode] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
+        "[GreenProfiler] Filter aktif: {} endpoint dipilih dari {} endpoint di {}.",
         matched.len(),
         total,
         path
@@ -43,7 +43,7 @@ fn endpoint_filter_matches(config_value: &Value, flags: &CliFlags, path: &str) -
         println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
         println!("            Kata kunci yang dipakai:");
         print_filter_keywords(&flags.filters, &flags.excludes);
-        println!("            Jalankan 'greencode routes' untuk melihat daftar endpoint.");
+        println!("            Jalankan 'greenprofiler routes' untuk melihat daftar endpoint.");
         return false;
     }
     true

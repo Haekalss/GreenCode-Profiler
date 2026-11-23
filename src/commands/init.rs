@@ -1,4 +1,4 @@
-//! `greencode init`: generate `greencode.json` with discovered endpoints.
+//! `greenprofiler init`: generate `greencode.json` with discovered endpoints.
 
 use crate::cli::apply_filters;
 use crate::detector::{RouteDiscoverer, RuntimeDetector};
@@ -11,7 +11,7 @@ const CONFIG_FILE: &str = "greencode.json";
 pub fn execute(force: bool, filters: Vec<String>, excludes: Vec<String>) {
     let ecosystem = RuntimeDetector::detect_project_ecosystem(".");
     println!(
-        "[GreenCode] Mendeteksi ekosistem project: {}",
+        "[GreenProfiler] Mendeteksi ekosistem project: {}",
         ecosystem.to_uppercase()
     );
 
@@ -21,7 +21,7 @@ pub fn execute(force: bool, filters: Vec<String>, excludes: Vec<String>) {
     }
     if Path::new(CONFIG_FILE).exists() && !force {
         println!(
-            "[GreenCode] Berkas '{}' sudah ada. Gunakan flag -f / --force untuk menimpa.",
+            "[GreenProfiler] Berkas '{}' sudah ada. Gunakan flag -f / --force untuk menimpa.",
             CONFIG_FILE
         );
         return;
@@ -42,13 +42,13 @@ fn fullstack_config() -> Option<Value> {
     let info = RuntimeDetector::detect_fullstack_components(".");
     let (frontend, backend) = (info.frontend?, info.backend?);
     println!(
-        "[GreenCode] Komponen Frontend terdeteksi : {} ({} di port {})",
+        "[GreenProfiler] Komponen Frontend terdeteksi : {} ({} di port {})",
         frontend.dir,
         frontend.framework.to_uppercase(),
         frontend.default_port
     );
     println!(
-        "[GreenCode] Komponen Backend terdeteksi  : {} ({} di port {})",
+        "[GreenProfiler] Komponen Backend terdeteksi  : {} ({} di port {})",
         backend.dir,
         backend.framework.to_uppercase(),
         backend.default_port
@@ -73,7 +73,7 @@ fn single_config(ecosystem: &str) -> Value {
     let port = default_port(ecosystem);
     let base_url = format!("http://127.0.0.1:{}", port);
     println!(
-        "[GreenCode] Mengatur base_url otomatis ke port {}: {}",
+        "[GreenProfiler] Mengatur base_url otomatis ke port {}: {}",
         port, base_url
     );
     json!({
@@ -113,13 +113,13 @@ fn attach_endpoints(config: &mut Value, filters: &[String], excludes: &[String])
 fn attach_fallback(config: &mut Value, total: usize) -> bool {
     if total > 0 {
         println!(
-            "[GreenCode] 0 rute cocok dengan --filter/--exclude (padahal ada {} rute profilable).",
+            "[GreenProfiler] 0 rute cocok dengan --filter/--exclude (padahal ada {} rute profilable).",
             total
         );
-        println!("            Periksa kembali kata kunci, atau jalankan 'greencode routes' untuk melihat daftar.");
+        println!("            Periksa kembali kata kunci, atau jalankan 'greenprofiler routes' untuk melihat daftar.");
         return false;
     }
-    println!("[GreenCode] Menggunakan template default endpoints.");
+    println!("[GreenProfiler] Menggunakan template default endpoints.");
     config["endpoints"] = json!([
         { "path": "/", "name": "Homepage", "method": "GET" },
         { "path": "/api/users", "name": "API Users", "method": "GET" }
@@ -130,13 +130,13 @@ fn attach_fallback(config: &mut Value, total: usize) -> bool {
 fn report_match_count(found: usize, total: usize, filters: &[String], excludes: &[String]) {
     if filters.is_empty() && excludes.is_empty() {
         println!(
-            "[GreenCode] Berhasil mendeteksi {} rute profilable dari project secara otomatis!",
+            "[GreenProfiler] Berhasil mendeteksi {} rute profilable dari project secara otomatis!",
             found
         );
         return;
     }
     println!(
-        "[GreenCode] {} rute profilable cocok dengan filter (dari {} di seluruh project).",
+        "[GreenProfiler] {} rute profilable cocok dengan filter (dari {} di seluruh project).",
         found, total
     );
 }
@@ -146,7 +146,7 @@ fn write_config(config: &Value) {
         return;
     };
     if fs::write(CONFIG_FILE, contents).is_ok() {
-        println!("[GreenCode] Sukses membuat template konfigurasi: {}", CONFIG_FILE);
-        println!("            Jalankan 'greencode run' untuk memulai profiling!");
+        println!("[GreenProfiler] Sukses membuat template konfigurasi: {}", CONFIG_FILE);
+        println!("            Jalankan 'greenprofiler run' untuk memulai profiling!");
     }
 }

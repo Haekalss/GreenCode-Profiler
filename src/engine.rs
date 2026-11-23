@@ -13,6 +13,7 @@ mod platform {
 
     #[repr(C)]
     #[derive(Default, Copy, Clone)]
+    #[allow(non_snake_case)]
     pub struct FILETIME {
         pub dwLowDateTime: DWORD,
         pub dwHighDateTime: DWORD,

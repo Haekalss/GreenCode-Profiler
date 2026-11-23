@@ -1,4 +1,4 @@
-//! Report data builder and file output handler for `greencode run`.
+//! Report data builder and file output handler for `greenprofiler run`.
 
 use super::aggregate::aggregate_endpoint_details;
 use crate::analyzer::CodeQualityReport;
@@ -38,7 +38,7 @@ pub fn build_report_data(
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.8.1",
+            "engine": "Rust Native Architecture v1.8.2",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp,
             "repeats_per_endpoint": repeats,
