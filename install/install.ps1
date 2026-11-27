@@ -12,7 +12,7 @@ if (-not (Test-Path $installDir)) {
     New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 }
 
-$zipUrl = "https://github.com/Haekalss/GreenCode-Profiler/releases/latest/download/GreenProfiler-v1.9.0-windows-x64.zip"
+$zipUrl = "https://github.com/greenprofiler/greenprofiler/releases/latest/download/GreenProfiler-v1.9.0-windows-x64.zip"
 $tempZip = "$env:TEMP\greenprofiler.zip"
 $tempExtract = "$env:TEMP\greenprofiler_extract"
 

@@ -10,7 +10,7 @@
 [![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.75+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Runtime: Standalone](https://img.shields.io/badge/Runtime-Zero%20Dependency-10b981.svg)]()
 [![Website](https://img.shields.io/badge/Website-greenprofiler.github.io-10b981.svg)](https://greenprofiler.github.io)
-[![Version](https://img.shields.io/badge/Version-1.9.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
+[![Version](https://img.shields.io/badge/Version-1.9.0-blue.svg)](https://github.com/greenprofiler/greenprofiler/releases)
 
 Green Profiler v1.9.0 is an advanced, high-performance auditing framework for software energy efficiency (*Green Software Engineering*), static architectural quality analysis, and runtime environment efficiency. Built in **Pure Native Rust**, it isolates CPU kernel execution time from I/O and network wait bias, delivering deterministic computational metrics without requiring any external interpreter or runtime dependency.
 
@@ -146,8 +146,8 @@ Generated HTML reports (`reports/greenprofiler_report.html`) classify metrics ag
 To compile the binaries directly from source:
 
 ```bash
-git clone https://github.com/Haekalss/GreenCode-Profiler.git
-cd GreenCode-Profiler
+git clone https://github.com/greenprofiler/greenprofiler.git
+cd greenprofiler
 cargo build --release
 ```
 
@@ -160,7 +160,7 @@ The compiled release binary will be available at:
 ## Repository Structure
 
 ```
-GreenCode-Profiler/
+greenprofiler/
 ├── .github/
 │   └── workflows/
 │       └── release.yml     - Automated cross-platform release builder

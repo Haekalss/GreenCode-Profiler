@@ -31,7 +31,7 @@ esac
 INSTALL_DIR="${HOME}/.greenprofiler/bin"
 mkdir -p "$INSTALL_DIR"
 
-URL="https://github.com/Haekalss/GreenCode-Profiler/releases/latest/download/${ASSET_NAME}"
+URL="https://github.com/greenprofiler/greenprofiler/releases/latest/download/${ASSET_NAME}"
 TEMP_ZIP="/tmp/greenprofiler.zip"
 TEMP_DIR="/tmp/greenprofiler_extract"
 

@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Muhamad Haekal Syukur <haekal@greenprofiler.org>"]
 description = "Universal Process-Level Energy & Code Quality Profiler in Rust (Zero-Cost Abstraction & Low-Overhead)"
 license = "MIT"
-repository = "https://github.com/Haekalss/GreenCode-Profiler"
+repository = "https://github.com/greenprofiler/greenprofiler"
 
 [[bin]]
 name = "greenprofiler"
