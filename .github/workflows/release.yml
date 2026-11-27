@@ -25,8 +25,8 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             asset_name: GreenProfiler-v1.9.0-linux-x64.zip
-          # macOS Intel
-          - os: macos-13
+          # macOS Intel (cross-compiled on macos-latest since macos-13 is retired)
+          - os: macos-latest
             target: x86_64-apple-darwin
             asset_name: GreenProfiler-v1.9.0-darwin-x64.zip
           # macOS Apple Silicon
@@ -43,22 +43,24 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Build Release Binary
-        run: cargo build --release --target ${{ matrix.target }} --bin greenprofiler
+      - name: Build Release Binaries
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package Binary (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Compress-Archive -Path target/${{ matrix.target }}/release/greenprofiler.exe, README.md, LICENSE -DestinationPath ${{ matrix.asset_name }}
+          Compress-Archive -Path target/${{ matrix.target }}/release/greenprofiler.exe, target/${{ matrix.target }}/release/gp.exe, README.md, LICENSE -DestinationPath ${{ matrix.asset_name }}
 
       - name: Package Binary (Unix)
         if: runner.os != 'Windows'
         run: |
-          zip -j ${{ matrix.asset_name }} target/${{ matrix.target }}/release/greenprofiler README.md LICENSE
+          zip -j ${{ matrix.asset_name }} target/${{ matrix.target }}/release/greenprofiler target/${{ matrix.target }}/release/gp README.md LICENSE
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          name: Green Profiler ${{ github.ref_name }}
+          generate_release_notes: true
           files: ${{ matrix.asset_name }}
