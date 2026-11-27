@@ -6,6 +6,7 @@ mod detect;
 mod init;
 mod routes;
 pub mod run;
+mod simulate;
 
 use crate::cli::{parse_flags, print_help};
 use crate::reporter::ReportGenerator;
@@ -29,12 +30,13 @@ pub fn dispatch(args: &[String]) {
         }
         "analyze" => analyze::execute(parse_flags(&args[2..])),
         "run" => execute_run(&args[2..]),
+        "simulate" | "simulasi" | "sim" => simulate::execute(parse_flags(&args[2..])),
         "ui" => open_reports(),
-        "version" | "-v" | "--version" => println!("Green Profiler v1.8.2"),
+        "version" | "-v" | "--version" => println!("Green Profiler v1.9.0"),
         "help" | "-h" | "--help" => print_help(),
         other => {
             println!("[GreenProfiler] Perintah tidak dikenal: '{}'", other);
-            println!("            Gunakan 'greencode help' untuk melihat daftar perintah.");
+            println!("            Gunakan 'greenprofiler help' untuk melihat daftar perintah.");
         }
     }
 }
@@ -45,12 +47,16 @@ fn execute_run(args: &[String]) {
         .positional
         .first()
         .cloned()
-        .unwrap_or_else(|| "greencode.json".to_string());
+        .unwrap_or_else(|| "greenprofiler.json".to_string());
     run::execute(&config, flags);
 }
 
 fn open_reports() {
-    const CANDIDATES: [&str; 2] = ["reports/greencode_report.html", "reports/code_quality.html"];
+    const CANDIDATES: [&str; 3] = [
+        "reports/greenprofiler_report.html",
+        "reports/code_quality.html",
+        "reports/simulation_report.html",
+    ];
     let found = CANDIDATES.iter().find(|path| Path::new(path).exists());
     if let Some(path) = found {
         ReportGenerator::open_in_browser(path);

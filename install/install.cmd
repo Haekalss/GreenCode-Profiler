@@ -9,7 +9,7 @@ echo ==========================================================
 set "INSTALL_DIR=%USERPROFILE%\.greenprofiler\bin"
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 
-set "ZIP_URL=https://github.com/Haekalss/GreenCode-Profiler/releases/latest/download/GreenProfiler-v1.8.2-windows-x64.zip"
+set "ZIP_URL=https://github.com/Haekalss/GreenCode-Profiler/releases/latest/download/GreenProfiler-v1.9.0-windows-x64.zip"
 set "TEMP_ZIP=%TEMP%\greenprofiler.zip"
 set "TEMP_DIR=%TEMP%\greenprofiler_extract"
 

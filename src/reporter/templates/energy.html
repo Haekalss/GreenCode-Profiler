@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Profiler v1.8.2 (Rust Native Engine) Report</title>
+    <title>Green Profiler v1.9.0 (Rust Native Engine) Report</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }
-        .container { max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 40px; border: 1px solid #e2e8f0; }
+        .container { max-width: 1120px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 40px; border: 1px solid #e2e8f0; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; }
         .header-brand { display: flex; align-items: center; gap: 18px; }
         .logo-img { width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
@@ -15,8 +15,8 @@
         .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }
         .card .val { font-size: 26px; font-weight: 700; color: #0f172a; margin-top: 8px; }
         .card .lbl { font-size: 13px; color: #64748b; font-weight: 500; text-transform: uppercase; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; table-layout: fixed; }
-        th, td { border: 1px solid #cbd5e1; padding: 10px 14px; word-wrap: break-word; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; table-layout: fixed; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px 12px; word-wrap: break-word; }
         th { background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; }
         tr:nth-child(even) { background: #f8fafc; }
         .section-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 35px; margin-bottom: 15px; border-left: 4px solid #10b981; padding-left: 10px; }
@@ -38,7 +38,7 @@
                 <img src="data:image/png;base64,{{LOGO}}" class="logo-img" alt="Green Profiler Logo" />
                 <div>
                     <h1 style="margin:0;font-size:24px;color:#0f172a;">Green Profiler Report</h1>
-                    <p style="margin:5px 0 0 0;color:#64748b;">Project: <strong>{{PROJECT_NAME}}</strong> | Engine: <strong>Rust Native Architecture v1.8.2</strong></p>
+                    <p style="margin:5px 0 0 0;color:#64748b;">Project: <strong>{{PROJECT_NAME}}</strong> | Engine: <strong>Rust Native Architecture v1.9.0</strong></p>
                 </div>
             </div>
             <div>
@@ -52,7 +52,7 @@
             <div class="card">
                 <div class="lbl">Total Energi Murni</div>
                 <div class="val" style="color:#059669;">{{TOTAL_JOULES}} J</div>
-                <div style="font-size:12px;color:#64748b;margin-top:4px;">({{TOTAL_KWH}})</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">({{TOTAL_KWH}} kWh)</div>
             </div>
             <div class="card">
                 <div class="lbl">Waktu Aktif CPU Murni</div>
@@ -75,15 +75,14 @@
             <h3>📖 Panduan &amp; Penjelasan Parameter Profiling Energi Dinamis</h3>
             <ul>
                 <li><strong>Total Energi Murni (Joule &amp; kWh):</strong> Total daya listrik aktual yang ditarik CPU selama memproses transaksi ($E = P_{avg} \times t_{active}$).
-                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🔴 <em>Merah (&gt; 10 J): Konsumsi tinggi / berisiko hotspot</em> | 🟡 <em>Kuning (2 - 10 J): Konsumsi moderat</em> | 🟢 <em>Hijau (&lt; 2 J): Sangat efisien</em></span>
+                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🔴 <em>Merah (&gt; 10 J): Konsumsi tinggi</em> | 🟡 <em>Kuning (2 - 10 J): Moderat</em> | 🟢 <em>Hijau (&lt; 2 J): Sangat efisien</em></span>
                 </li>
-                <li><strong>Waktu Aktif CPU Murni (Detik):</strong> Durasi thread CPU aktif mengeksekusi instruksi kode program ($t_{user} + t_{system}$ dari kernel). <strong>Kebal terhadap keterlambatan network I/O, waiting query database, atau koneksi lambat</strong>.</li>
+                <li><strong>Waktu Aktif CPU Murni (Detik):</strong> Durasi thread CPU aktif mengeksekusi instruksi kode program ($t_{user} + t_{system}$ dari kernel), bebas bias network/DB I/O wait.</li>
                 <li><strong>Jejak Karbon Bersih (gCO2e):</strong> Estimasi emisi gas rumah kaca berbasis faktor emisi pembangkit listrik Indonesia (~850 gCO2e/kWh).</li>
-                <li><strong>Green Score (0 - 100):</strong> Indeks rasio efisiensi energi terhadap latensi dan throughput endpoint.
-                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>Hijau (≥ 85): Optimal</em> | 🟡 <em>Kuning (60 - 84): Cukup</em> | 🔴 <em>Merah (&lt; 60): Boros energi (perlu refactoring)</em></span>
-                </li>
             </ul>
         </div>
+
+        {{SIMULATION_SECTION}}
 
         <div class="section-title">1. Ringkasan Efisiensi Energi per Modul</div>
         <table>
@@ -107,14 +106,14 @@
         <table>
             <thead>
                 <tr>
-                    <th style="text-align:center;">#</th>
-                    <th>Method</th>
-                    <th>Target URL</th>
-                    <th style="text-align:center;">HTTP Status</th>
-                    <th style="text-align:right;">Latensi</th>
-                    <th style="text-align:right;">CPU Aktif</th>
-                    <th style="text-align:right;">Energi Bersih</th>
-                    <th>💡 Saran Optimasi</th>
+                    <th style="width:5%;text-align:center;">#</th>
+                    <th style="width:9%;">Method</th>
+                    <th style="width:28%;">Target URL</th>
+                    <th style="width:9%;text-align:center;">HTTP Status</th>
+                    <th style="width:13%;text-align:right;">Latensi</th>
+                    <th style="width:10%;text-align:right;">CPU Aktif</th>
+                    <th style="width:11%;text-align:right;">Energi Bersih</th>
+                    <th style="width:15%;">💡 Saran Optimasi</th>
                 </tr>
             </thead>
             <tbody>
@@ -144,28 +143,25 @@
         </div>
 
         <div class="desc-box blue">
-            <h3>📐 Panduan &amp; Penjelasan Parameter Kualitas Struktur Kode</h3>
+            <h3>📐 Standar Kalibrasi Struktur Kode (Harian Developer + Riset)</h3>
             <ul>
-                <li><strong>NCLOC (Non-Comment Lines of Code):</strong> Jumlah baris instruksi logika program yang dieksekusi tanpa menghitung baris kosong dan komentar. Semakin proporsional NCLOC per berkas (&lt; 300 baris), semakin mudah dirawat.</li>
-                <li><strong>CCN (Cyclomatic Complexity Number):</strong> Jumlah jalur percabangan independen (if/else/switch/loop) dalam logika fungsi.
-                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>1 - 10: Rendah &amp; Aman</em> | 🟡 <em>11 - 20: Sedang (rawan bug)</em> | 🔴 <em>&gt; 20: Tinggi &amp; Kompleks (wajib modularisasi)</em></span>
-                </li>
-                <li><strong>MI (Maintainability Index, Skala 0 - 100):</strong> Indeks komprehensif kemudahan pemeliharaan kode berbasis perpaduan logaritma Halstead Volume, CCN, dan NCLOC.
-                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>Grade A (≥ 85): Bersih &amp; Sangat Mudah Dipelihara</em> | 🟡 <em>Grade B (65 - 84): Cukup</em> | 🔴 <em>Grade C (&lt; 65): Technical Debt Tinggi</em></span>
-                </li>
-                <li><strong>Smells (Code Smells):</strong> Deteksi gejala arsitektur buruk: <em>God Class</em> (kelas terlalu besar), <em>Fat Controller</em> (logika bertumpuk di controller), dan <em>Deep Nesting</em> (percabangan bersarang &gt; 4 level).</li>
+                <li><strong>NCLOC Adaptif:</strong> Batas wajar <strong>&le; 300 NCLOC</strong> untuk Backend/Logic (<code>.php</code>, <code>.py</code>, <code>.ts</code>) dan <strong>&le; 450 NCLOC</strong> untuk komponen UI deklaratif (<code>.tsx</code>, <code>.jsx</code>).</li>
+                <li><strong>Control-Flow Deep Nesting:</strong> Mengukur percabangan/perulangan bersarang murni (&ge; 4 level di dalam fungsi), bebas positif palsu dari markup JSX.</li>
+                <li><strong>Maintainability Index (MI):</strong> Grade A (&ge; 70), Grade B (55 – 69), Grade C (&lt; 55).</li>
             </ul>
         </div>
 
-        <div class="section-title blue">4. Temuan Code Smells &amp; Arsitektur Buruk</div>
+        {{PHP_EXT_SECTION}}
+
+        <div class="section-title blue">4. Temuan Code Smells &amp; Arsitektur</div>
         <table>
             <thead>
                 <tr>
-                    <th style="text-align:center;">Severity</th>
-                    <th>Tipe Masalah</th>
-                    <th>Deskripsi</th>
-                    <th>Lokasi Berkas</th>
-                    <th>💡 Saran Perbaikan</th>
+                    <th style="width:10%;text-align:center;">Severity</th>
+                    <th style="width:20%;">Tipe Masalah</th>
+                    <th style="width:25%;">Deskripsi</th>
+                    <th style="width:23%;">Lokasi Berkas</th>
+                    <th style="width:22%;">💡 Saran Perbaikan</th>
                 </tr>
             </thead>
             <tbody>
@@ -195,7 +191,7 @@
         {{PHP_SECTION}}
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>Green Profiler v1.8.2 (Rust Native Architecture)</strong>.<br>
+            Dihasilkan secara otomatis oleh <strong>Green Profiler v1.9.0 (Rust Native Architecture)</strong>.<br>
             Laporan ini memenuhi standar audit perangkat lunak ramah lingkungan (Green Software Engineering).
         </div>
     </div>

@@ -7,6 +7,7 @@ use crate::cli::{get_simple_timestamp, resolve_report_paths, CliFlags};
 use crate::correlator::GreenCorrelator;
 use crate::php_auditor::PhpAuditReport;
 use crate::reporter::ReportGenerator;
+use crate::simulator::{AuditSimulator, SimulationParams};
 use serde_json::{json, Value};
 
 pub fn build_report_data(
@@ -26,19 +27,20 @@ pub fn build_report_data(
     let total_kwh = total_joules / 3_600_000.0;
     let total_co2e_g = total_kwh * 850.0;
     let avg_latency: f64 = if !attributor.records.is_empty() {
-        attributor.records.iter().map(|r| r.latency_ms).sum::<f64>() / attributor.records.len() as f64
+        attributor.records.iter().map(|r| r.latency_ms).sum::<f64>()
+            / attributor.records.len() as f64
     } else {
         0.0
     };
 
     let endpoints_detail = aggregate_endpoint_details(&attributor.records);
 
-    json!({
+    let mut data = json!({
         "metadata": {
             "project_name": project_name,
             "runtime": runtime,
             "base_url": base_url,
-            "engine": "Rust Native Architecture v1.8.2",
+            "engine": "Rust Native Architecture v1.9.0",
             "timestamp": get_simple_timestamp(),
             "cpu_tdp_watts": cpu_tdp,
             "repeats_per_endpoint": repeats,
@@ -66,14 +68,31 @@ pub fn build_report_data(
         } else {
             json!(null)
         }
-    })
+    });
+
+    let mut sim_params = SimulationParams::default();
+    if flags.users > 0 {
+        sim_params.custom_users = Some(flags.users);
+    }
+    if flags.requests_per_user > 0 {
+        sim_params.requests_per_user = flags.requests_per_user;
+    }
+    if flags.cores > 0 {
+        sim_params.cpu_cores = flags.cores;
+    }
+    if flags.window_sec > 0.0 {
+        sim_params.concurrency_window_sec = flags.window_sec;
+    }
+    let sim = AuditSimulator::simulate(&data, &sim_params);
+    data["multi_user_simulation"] = json!(sim);
+    data
 }
 
 pub fn save_and_open_reports(report_data: &Value, flags: &CliFlags) {
     let (html_path, json_path) = resolve_report_paths(
         &flags.output,
-        "reports/greencode_report.html",
-        "reports/greencode_report.json",
+        "reports/greenprofiler_report.html",
+        "reports/greenprofiler_report.json",
     );
 
     let _ = ReportGenerator::save_json(report_data, &json_path);
@@ -83,8 +102,18 @@ pub fn save_and_open_reports(report_data: &Value, flags: &CliFlags) {
     println!("                     PROFILING SELESAI                          ");
     println!("================================================================");
     println!("Laporan Komprehensif tersimpan di:");
-    println!(" - JSON : {}", std::fs::canonicalize(&json_path).unwrap_or_else(|_| json_path.clone().into()).display());
-    println!(" - HTML : {}", std::fs::canonicalize(&html_path).unwrap_or_else(|_| html_path.clone().into()).display());
+    println!(
+        " - JSON : {}",
+        std::fs::canonicalize(&json_path)
+            .unwrap_or_else(|_| json_path.clone().into())
+            .display()
+    );
+    println!(
+        " - HTML : {}",
+        std::fs::canonicalize(&html_path)
+            .unwrap_or_else(|_| html_path.clone().into())
+            .display()
+    );
     println!("================================================================\n");
 
     if !flags.no_open {

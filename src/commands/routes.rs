@@ -29,12 +29,12 @@ pub fn execute(path: &str, flags: &CliFlags) {
 
 fn print_header() {
     println!("================================================================");
-    println!("      GREENCODE AUTOMATIC ROUTE DISCOVERY (Rust Engine)         ");
+    println!("    GREEN PROFILER AUTOMATIC ROUTE DISCOVERY (Rust Engine)      ");
     println!("================================================================");
 }
 
 fn print_missing_path(path: &str) {
-    println!("[GreenError] Folder tidak ditemukan: {}", path);
+    println!("[GreenProfiler Error] Folder tidak ditemukan: {}", path);
     println!("            Periksa kembali path, atau jalankan dari root monorepo:");
     println!("              greenprofiler routes");
     println!("================================================================\n");

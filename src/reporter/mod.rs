@@ -1,7 +1,7 @@
 //! HTML and JSON report generation.
 //!
 //! Templates live in `templates/*.html` so presentation markup stays out of
-//! Rust source files. Rendering helpers are shared by both report types.
+//! Rust source files. Rendering helpers are shared by all report types.
 
 pub mod badges;
 pub mod energy;
@@ -10,6 +10,7 @@ pub mod quality;
 pub mod recommendations;
 pub mod render;
 pub mod rows;
+pub mod simulation;
 
 use serde_json::Value;
 use std::fs;
@@ -39,6 +40,13 @@ impl ReportGenerator {
         path: P,
     ) -> std::io::Result<()> {
         quality::generate(report_data, path.as_ref())
+    }
+
+    pub fn generate_simulation_html<P: AsRef<Path>>(
+        sim_data: &Value,
+        path: P,
+    ) -> std::io::Result<()> {
+        simulation::generate(sim_data, path.as_ref())
     }
 
     pub fn open_in_browser<P: AsRef<Path>>(path: P) {

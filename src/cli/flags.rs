@@ -6,6 +6,11 @@ pub struct CliFlags {
     pub limit: usize,
     pub force: bool,
     pub no_open: bool,
+    pub strict: bool,
+    pub users: u64,
+    pub requests_per_user: u64,
+    pub cores: u32,
+    pub window_sec: f64,
     pub filters: Vec<String>,
     pub excludes: Vec<String>,
     pub output: Option<String>,
@@ -27,6 +32,14 @@ pub fn parse_flags(args: &[String]) -> CliFlags {
             "--filter" | "-F" => push(&mut flags.filters, args, index),
             "--exclude" | "-X" => push(&mut flags.excludes, args, index),
             "--output" | "-o" => assign_option(&mut flags.output, args, index),
+            "--users" | "-u" => assign(&mut flags.users, args, index),
+            "--requests-per-user" | "--rpu" => assign(&mut flags.requests_per_user, args, index),
+            "--cores" | "-c" => assign(&mut flags.cores, args, index),
+            "--window" | "-w" => assign(&mut flags.window_sec, args, index),
+            "--strict" => {
+                flags.strict = true;
+                None
+            }
             "--force" | "-f" => {
                 flags.force = true;
                 None

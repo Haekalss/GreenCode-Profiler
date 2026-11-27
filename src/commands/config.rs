@@ -1,4 +1,4 @@
-//! Shared `greencode.json` reading and endpoint/URL helpers.
+//! Shared `greenprofiler.json` reading and endpoint/URL helpers.
 
 use crate::detector::RouteEndpoint;
 use serde_json::{json, Value};

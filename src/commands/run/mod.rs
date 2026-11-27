@@ -85,7 +85,7 @@ fn prepare_endpoints(cfg: &Value, flags: &CliFlags, config_path: &str) -> Option
             config_path
         );
         if filtered.is_empty() {
-            println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
+            println!("[GreenProfiler Error] 0 endpoint cocok dengan --filter / --exclude.");
             println!("            Kata kunci yang dipakai:");
             print_filter_keywords(&flags.filters, &flags.excludes);
             println!("            Jalankan 'greenprofiler routes' untuk melihat daftar endpoint.");

@@ -20,19 +20,19 @@ jobs:
           # Windows x64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            asset_name: GreenProfiler-v1.8.2-windows-x64.zip
+            asset_name: GreenProfiler-v1.9.0-windows-x64.zip
           # Linux x64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            asset_name: GreenProfiler-v1.8.2-linux-x64.zip
+            asset_name: GreenProfiler-v1.9.0-linux-x64.zip
           # macOS Intel
           - os: macos-13
             target: x86_64-apple-darwin
-            asset_name: GreenProfiler-v1.8.2-darwin-x64.zip
+            asset_name: GreenProfiler-v1.9.0-darwin-x64.zip
           # macOS Apple Silicon
           - os: macos-latest
             target: aarch64-apple-darwin
-            asset_name: GreenProfiler-v1.8.2-darwin-arm64.zip
+            asset_name: GreenProfiler-v1.9.0-darwin-arm64.zip
 
     steps:
       - name: Checkout repository

@@ -1,27 +1,73 @@
-//! Metrics calculation: Cyclomatic Complexity (CCN) & Maintainability Index (MI).
+//! Metrics calculation: Cyclomatic Complexity (CCN), thresholds, & Maintainability Index (MI).
 
 use regex::Regex;
+use std::sync::OnceLock;
 
-pub fn branch_regex() -> Regex {
-    Regex::new(
-        r"(?i)\b(if|else\s*if|elif|for|foreach|while|case|catch|except|match)\b|&&|\|\||\band\b|\bor\b|\?\s*[^:]+:|\?\?"
-    ).unwrap()
+pub fn branch_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(
+            r"(?i)\b(if|else\s*if|elif|for|foreach|while|case|catch|except|match)\b|&&|\|\||\band\b|\bor\b|\?\s*[^:]+:|\?\?"
+        )
+        .unwrap()
+    })
 }
 
-pub fn function_regex() -> Regex {
-    Regex::new(
-        r"(?m)^\s*(?:pub\s+(?:\([^\)]+\)\s+)?)?(?:async\s+)?(?:unsafe\s+)?fn\s+([a-zA-Z0-9_]+)\s*\(|^\s*(?:public|protected|private|static|\s)*\s*function\s+([a-zA-Z0-9_]+)\s*\(|^\s*(?:export\s+)?(?:async\s+)?function\s+([a-zA-Z0-9_]+)\s*\(|const\s+([a-zA-Z0-9_]+)\s*=\s*(?:async\s*)?\("
-    ).unwrap()
+/// Regex khusus kontrol alur struktural (bukan operator boolean `&&`/`||` atau ekspresi JSX).
+pub fn control_flow_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(
+            r"^\s*(?:\}\s*)?(?:else\s+if|if|elif|else|for|foreach|while|switch|match|try|catch|except)\b",
+        )
+        .unwrap()
+    })
 }
 
-/// Menghitung Maintainability Index (MI) dengan formula standar industri Microsoft / Visual Studio.
-/// Formula asli Coleman-Oman (171) sering menghasilkan nilai negatif atau terlalu rendah untuk file normal,
-/// sehingga Microsoft menormalisasikannya ke skala 0 - 100 dengan clamping max(0, (171 - ...) * 100 / 171).
-/// Namun karena estimasi Volume Halstead (NCLOC * 5) sangat sensitif terhadap ukuran file di bahasa modern,
-/// formula Microsoft SE standar menggunakan:
-/// MI = max(0.0, ((171.0 - 5.2 * ln(Halstead Volume) - 0.23 * CCN - 16.2 * ln(NCLOC)) * 100.0 / 171.0))
-/// dengan batas bobot logaritmik yang proporsional sehingga file modular (10-300 baris)
-/// dengan CCN rendah (< 15) berada di rentang wajar 60 - 95.
+pub fn loop_control_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"^\s*(?:for|foreach|while)\b").unwrap())
+}
+
+pub fn arrow_callback_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"=>\s*\{").unwrap())
+}
+
+pub fn function_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(
+            r"(?:pub\s+(?:\([^\)]+\)\s+)?)?(?:async\s+)?(?:unsafe\s+)?fn\s+([a-zA-Z0-9_]+)\s*\(|(?:public|protected|private|static|\s)*\bfunction\s+([a-zA-Z0-9_]+)\s*\(|(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s+([a-zA-Z0-9_]+)\s*\(|(?:export\s+)?const\s+([a-zA-Z0-9_]+)\s*=\s*(?:async\s*)?\([^)]*\)\s*(?::\s*[^=]+)?=>"
+        )
+        .unwrap()
+    })
+}
+
+/// Ambang batas NCLOC adaptif:
+/// - Mode default (harian + riset): komponen UI deklaratif (.tsx/.jsx/.vue/.svelte) <= 450 NCLOC,
+///   sedangkan backend/logic (.php/.py/.ts/.js/.rs/.go) <= 300 NCLOC.
+/// - Mode `--strict`: seragam <= 300 NCLOC untuk seluruh jenis berkas.
+pub fn max_ncloc_for_extension(ext: &str, strict: bool) -> usize {
+    if strict {
+        return 300;
+    }
+    match ext {
+        "tsx" | "jsx" | "vue" | "svelte" => 450,
+        _ => 300,
+    }
+}
+
+/// Ambang batas kedalaman control-flow bersarang di dalam satu fungsi.
+pub fn max_control_flow_nesting(strict: bool) -> usize {
+    if strict {
+        3
+    } else {
+        4
+    }
+}
+
+/// Menghitung Maintainability Index (MI) terkalibrasi (skala 0 - 100).
 pub fn calculate_maintainability_index(ncloc: usize, ccn: u32) -> f64 {
     if ncloc == 0 {
         return 100.0;
@@ -30,19 +76,13 @@ pub fn calculate_maintainability_index(ncloc: usize, ccn: u32) -> f64 {
     let ccn_f = ccn as f64;
     let volume = (ncloc_f * 4.5).max(1.0);
 
-    // Formula standar Coleman-Oman / Microsoft Visual Studio SE:
-    // Raw MI = 171 - 5.2 * ln(V) - 0.23 * CCN - 16.2 * ln(LOC)
     let raw_mi = 171.0 - 5.2 * volume.ln() - 0.23 * ccn_f - 16.2 * ncloc_f.ln();
 
-    // Standard SEI (Software Engineering Institute) logarithmic rescaling:
-    // Pada skala Coleman asli (0-171), nilai 100 raw adalah kode sempurna, 50-85 adalah kode baik.
-    // Ditransformasikan ke skala 0 - 100 yang proporsional untuk arsitektur modern:
     let calibrated = if raw_mi > 0.0 {
         let sei_mi = raw_mi * (100.0 / 171.0);
-        // Rescaling kurva: file bersih & modular (CCN < 10, NCLOC 20-150) berada di rentang 70 - 95
-        (sei_mi * 1.8 - 15.0).clamp(10.0, 100.0)
+        (sei_mi * 2.15 - 5.0).clamp(15.0, 100.0)
     } else {
-        0.0
+        10.0
     };
 
     (calibrated * 10.0).round() / 10.0

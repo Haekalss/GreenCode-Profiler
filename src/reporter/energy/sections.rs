@@ -26,15 +26,20 @@ pub fn format_module_rows(modules: &Value) -> String {
 pub fn format_file_rows(files: &Value) -> String {
     files
         .as_array()
-        .map(|arr| arr.iter().map(file_row).collect())
+        .map(|arr| arr.iter().take(25).map(file_row).collect())
         .unwrap_or_default()
 }
 
 pub fn format_smell_rows(smells: &Value) -> String {
-    smells
+    let rows: String = smells
         .as_array()
         .map(|arr| arr.iter().take(25).map(smell_row).collect())
-        .unwrap_or_default()
+        .unwrap_or_default();
+    if rows.is_empty() {
+        r#"<tr><td colspan="5" style="text-align:center;color:#059669;font-weight:600;padding:18px;">✅ Tidak ditemukan pelanggaran arsitektur (0 Code Smells)</td></tr>"#.to_string()
+    } else {
+        rows
+    }
 }
 
 pub fn format_files_summary(total_files_count: usize) -> String {

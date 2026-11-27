@@ -1,19 +1,30 @@
 //! Metrics aggregation and summary calculations.
 
+use super::php_ext::PhpExtensionCandidate;
 use super::{CodeQualityReport, FileAnalysisResult, FunctionMetric, LanguageStat, OverviewMetrics};
 use std::collections::BTreeMap;
 
 pub fn aggregate_report(
-    files_result: Vec<FileAnalysisResult>,
+    mut files_result: Vec<FileAnalysisResult>,
     files_considered: usize,
     mut all_functions: Vec<FunctionMetric>,
+    php_extension_candidates: Vec<PhpExtensionCandidate>,
+    strict_mode: bool,
 ) -> CodeQualityReport {
     let total_files = files_result.len();
     let total_ncloc: usize = files_result.iter().map(|f| f.ncloc).sum();
     let total_ccn: u32 = files_result.iter().map(|f| f.ccn).sum();
-    let avg_ccn = if total_files > 0 { total_ccn as f64 / total_files as f64 } else { 0.0 };
+    let avg_ccn = if total_files > 0 {
+        total_ccn as f64 / total_files as f64
+    } else {
+        0.0
+    };
     let avg_mi = if total_files > 0 {
-        files_result.iter().map(|f| f.maintainability_index).sum::<f64>() / total_files as f64
+        files_result
+            .iter()
+            .map(|f| f.maintainability_index)
+            .sum::<f64>()
+            / total_files as f64
     } else {
         100.0
     };
@@ -24,6 +35,19 @@ pub fn aggregate_report(
         _ if avg_mi >= 40.0 => "C (Low / Technical Debt)",
         _ => "D (High Risk / Severe Technical Debt)",
     };
+
+    // Urutkan file berdasarkan risiko (jumlah smells desc, CCN desc, MI asc)
+    files_result.sort_by(|a, b| {
+        b.code_smells
+            .len()
+            .cmp(&a.code_smells.len())
+            .then_with(|| b.ccn.cmp(&a.ccn))
+            .then_with(|| {
+                a.maintainability_index
+                    .partial_cmp(&b.maintainability_index)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+    });
 
     all_functions.sort_by(|a, b| b.ccn.cmp(&a.ccn));
     all_functions.truncate(10);
@@ -50,10 +74,17 @@ pub fn aggregate_report(
             average_maintainability_index: (avg_mi * 100.0).round() / 100.0,
             maintainability_grade: grade.to_string(),
             total_code_smells: all_smells.len(),
+            php_extension_candidates_count: php_extension_candidates.len(),
+            analysis_profile: if strict_mode {
+                "Strict Audit (Uniform 300 NCLOC)".to_string()
+            } else {
+                "Pragmatic + Research (Backend <=300, UI <=450 NCLOC, Control-Flow Nesting)".to_string()
+            },
             language_breakdown,
         },
         files: files_result,
         top_complex_functions: all_functions,
         code_smells: all_smells,
+        php_extension_candidates,
     }
 }

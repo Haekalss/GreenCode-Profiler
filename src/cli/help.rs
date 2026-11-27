@@ -2,7 +2,7 @@
 
 pub fn print_banner() {
     println!("================================================================");
-    println!("   GREEN PROFILER v1.8.2 (Rust Native Architecture)             ");
+    println!("   GREEN PROFILER v1.9.0 (Rust Native Architecture)             ");
     println!("   Universal Process-Level Energy & Code Quality Framework      ");
     println!("================================================================");
 }
@@ -16,7 +16,7 @@ pub fn get_simple_timestamp() -> String {
     let secs = now % 60;
     let mins = (now / 60) % 60;
     let hours = (now / 3600 + 7) % 24; // WIB UTC+7
-    format!("2026-11-16 {:02}:{:02}:{:02} WIB", hours, mins, secs)
+    format!("2026-11-27 {:02}:{:02}:{:02} WIB", hours, mins, secs)
 }
 
 pub fn print_no_route_hints(dir: &str) {
@@ -45,27 +45,27 @@ pub fn print_help() {
     println!("            gp <command> [options]           (alias singkat)\n");
     println!("Perintah Utama:");
     println!("  init [--force] [--filter K] [--exclude K]");
-    println!("                        Inisialisasi greencode.json + deteksi rute otomatis");
+    println!("                        Inisialisasi greenprofiler.json + deteksi rute otomatis");
     println!("  routes [dir] [--limit N] [--filter K] [--exclude K]");
-    println!("                        Deteksi rute nyata (default: tanpa batas, semua");
-    println!("                        bahasa: Node/PHP/Python/Go/Rust)");
+    println!("                        Deteksi rute nyata (Node/PHP/Python/Go/Rust)");
     println!("  detect                Pindai proses server aktif dan PID-nya");
-    println!("  analyze [dir] [--no-open] [--filter K] [--exclude K] [--output file]");
-    println!("                        Analisis kualitas kode statis (CCN, MI, LOC, Smells)");
-    println!("  run [config.json] [--no-open] [--filter K] [--exclude K] [--output file]");
-    println!("                        Jalankan profiling energi dan kualitas kode");
-    println!("                        (--output: simpan laporan ke path kustom, JSON ikut)");
-    println!("  ui                    Buka laporan HTML di peramban web");
+    println!("  analyze [dir] [--strict] [--no-open] [--filter K] [--exclude K] [--output file]");
+    println!("                        Analisis kualitas kode adaptif, deteksi kandidat PHP Extension,");
+    println!("                        serta proyeksi simulasi beban multi-user");
+    println!("  run [config.json] [--strict] [--users N] [--no-open] [--filter K] [--output file]");
+    println!("                        Jalankan profiling energi dinamis, kualitas kode & simulasi skala");
+    println!("  simulate [report.json] [--users N] [--rpu N] [--cores C] [--window S] [--no-open]");
+    println!("                        Simulasi dampak banyak user (energi, CO2, latensi P95, kapasitas)");
+    println!("                        menggunakan hasil audit yang sudah ada");
+    println!("  ui                    Buka laporan HTML terbaru di peramban web");
     println!("  version               Tampilkan versi Green Profiler");
     println!("  help                  Tampilkan panduan bantuan ini\n");
-    println!("Catatan Alias:");
-    println!("  Perintah 'greenprofiler' dapat dipanggil dengan alias singkat 'gp'");
-    println!("  (mis. 'gp run' atau 'gp init'). Kompatibilitas 'greencode' tetap didukung.\n");
-    println!("Filter (boleh diulang, cocok case-insensitive pada path & nama):");
-    println!("  --filter K   hanya endpoint yang mengandung K (logika OR)");
-    println!("  --exclude K  buang endpoint yang mengandung K\n");
+    println!("Mode Standar Kualitas:");
+    println!("  Default               Adaptif harian + riset (Backend <=300 NCLOC, UI .tsx/.jsx <=450 NCLOC,");
+    println!("                        Deep Nesting khusus blok control-flow murni)");
+    println!("  --strict              Mode audit ketat seragam (seluruh berkas <=300 NCLOC)\n");
     println!("Contoh:");
-    println!("  gp routes --filter api");
-    println!("  greenprofiler run --filter api --exclude admin");
-    println!("  gp init --filter api --filter data --limit 20\n");
+    println!("  gp analyze --filter smki --no-open");
+    println!("  gp simulate reports/greenprofiler_report.json --users 2500 --cores 8");
+    println!("  greenprofiler run --users 5000 --filter api\n");
 }

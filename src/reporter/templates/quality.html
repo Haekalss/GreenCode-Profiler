@@ -5,7 +5,7 @@
     <title>Green Profiler Static Code Quality Report (Rust)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }
-        .container { max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .container { max-width: 1120px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px; }
         .header-brand { display: flex; align-items: center; gap: 18px; }
         .logo-img { width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
@@ -33,11 +33,11 @@
                 <img src="data:image/png;base64,{{LOGO}}" class="logo-img" alt="Green Profiler Logo" />
                 <div>
                     <h1 style="margin:0;font-size:24px;color:#0f172a;">Static Code Quality &amp; Architecture Report</h1>
-                    <p style="margin:5px 0 0 0;color:#64748b;">Dianalisis menggunakan Green Profiler Static Analyzer (Rust Native Engine)</p>
+                    <p style="margin:5px 0 0 0;color:#64748b;">Profil Standar: <strong>{{ANALYSIS_PROFILE}}</strong></p>
                 </div>
             </div>
             <div>
-                <span style="background:#3b82f6;color:white;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">STATIC AUDIT</span>
+                <span style="background:#3b82f6;color:white;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">STATIC AUDIT v1.9</span>
             </div>
         </div>
         {{FILTER_BANNER}}
@@ -68,28 +68,27 @@
         </div>
 
         <div class="desc-box">
-            <h3>📐 Panduan &amp; Penjelasan Parameter Kualitas Struktur Kode</h3>
+            <h3>📐 Panduan &amp; Standar Kalibrasi Kualitas Struktur Kode (Harian + Riset)</h3>
             <ul>
-                <li><strong>NCLOC (Non-Comment Lines of Code):</strong> Jumlah baris instruksi logika program yang dieksekusi tanpa menghitung baris kosong dan komentar. Semakin proporsional NCLOC per berkas (&lt; 300 baris), semakin mudah dirawat.</li>
-                <li><strong>CCN (Cyclomatic Complexity Number):</strong> Jumlah jalur percabangan independen (if/else/switch/loop) dalam logika fungsi.
-                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>1 - 10: Rendah &amp; Aman</em> | 🟡 <em>11 - 20: Sedang (rawan bug)</em> | 🔴 <em>&gt; 20: Tinggi &amp; Kompleks (wajib modularisasi)</em></span>
-                </li>
-                <li><strong>MI (Maintainability Index, Skala 0 - 100):</strong> Indeks komprehensif kemudahan pemeliharaan kode berbasis perpaduan logaritma Halstead Volume, CCN, dan NCLOC.
-                    <br><span style="display:inline-block;margin-top:2px;font-size:12px;">🟢 <em>Grade A (≥ 85): Bersih &amp; Sangat Mudah Dipelihara</em> | 🟡 <em>Grade B (65 - 84): Cukup</em> | 🔴 <em>Grade C (&lt; 65): Technical Debt Tinggi</em></span>
-                </li>
-                <li><strong>Smells (Code Smells):</strong> Deteksi gejala arsitektur buruk: <em>God Class</em> (kelas terlalu besar), <em>Fat Controller</em> (logika bertumpuk di controller), dan <em>Deep Nesting</em> (percabangan bersarang &gt; 4 level).</li>
+                <li><strong>NCLOC Adaptif per Bahasa:</strong> Baris kode aktif tanpa komentar/baris kosong. Batas sehat: <strong>&le; 300 NCLOC</strong> untuk Backend/Logic (<code>.php</code>, <code>.py</code>, <code>.ts</code>, <code>.go</code>, <code>.rs</code>) dan <strong>&le; 450 NCLOC</strong> untuk komponen UI deklaratif (<code>.tsx</code>, <code>.jsx</code>). Gunakan <code>--strict</code> untuk batas seragam 300 NCLOC.</li>
+                <li><strong>Control-Flow Deep Nesting:</strong> Mengukur kedalaman percabangan/perulangan murni (<code>if</code>, <code>for</code>, <code>foreach</code>, <code>while</code>, <code>switch</code>, <code>try</code>) di dalam fungsi (&ge; 4 level), tanpa menghitung kurung kurawal markup JSX.</li>
+                <li><strong>CCN &amp; Maintainability Index (MI):</strong> Rata-rata CCN sehat &le; 15; MI <strong>Grade A (&ge; 70)</strong>, <strong>Grade B (55 – 69)</strong>, <strong>Grade C (&lt; 55)</strong>.</li>
             </ul>
         </div>
+
+        {{PHP_EXT_SECTION}}
+
+        {{SIMULATION_SECTION}}
 
         <div class="section-title">Daftar Temuan Code Smells &amp; Arsitektur</div>
         <table>
             <thead>
                 <tr>
-                    <th style="text-align:center;">Severity</th>
-                    <th>Tipe Masalah</th>
-                    <th>Deskripsi</th>
-                    <th>Lokasi Berkas</th>
-                    <th>💡 Saran Perbaikan</th>
+                    <th style="width:10%;text-align:center;">Severity</th>
+                    <th style="width:20%;">Tipe Masalah</th>
+                    <th style="width:25%;">Deskripsi</th>
+                    <th style="width:23%;">Lokasi Berkas</th>
+                    <th style="width:22%;">💡 Saran Perbaikan</th>
                 </tr>
             </thead>
             <tbody>
@@ -116,7 +115,7 @@
         </table>
 
         <div class="footer">
-            Dihasilkan secara otomatis oleh <strong>Green Profiler v1.8.2 (Rust Native Architecture)</strong>.
+            Dihasilkan secara otomatis oleh <strong>Green Profiler v1.9.0 (Rust Native Architecture)</strong>.
         </div>
     </div>
 </body>

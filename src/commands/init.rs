@@ -1,4 +1,4 @@
-//! `greenprofiler init`: generate `greencode.json` with discovered endpoints.
+//! `greenprofiler init`: generate `greenprofiler.json` with discovered endpoints.
 
 use crate::cli::apply_filters;
 use crate::detector::{RouteDiscoverer, RuntimeDetector};
@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use std::fs;
 use std::path::Path;
 
-const CONFIG_FILE: &str = "greencode.json";
+const CONFIG_FILE: &str = "greenprofiler.json";
 
 pub fn execute(force: bool, filters: Vec<String>, excludes: Vec<String>) {
     let ecosystem = RuntimeDetector::detect_project_ecosystem(".");

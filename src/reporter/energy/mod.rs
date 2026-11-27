@@ -3,6 +3,7 @@
 pub mod sections;
 
 use super::render::*;
+use super::simulation::{format_multi_user_simulation_section, format_php_ext_candidates_section};
 use super::LOGO_BASE64;
 use serde_json::Value;
 use std::fs;
@@ -54,6 +55,14 @@ pub fn generate<P: AsRef<Path>>(data: &Value, path: P) -> std::io::Result<()> {
         ("FILES_SUMMARY", sections::format_files_summary(total_files_count)),
         ("ROWS_FILES", sections::format_file_rows(&quality["files"])),
         ("ROWS_SMELLS", sections::format_smell_rows(&quality["code_smells"])),
+        (
+            "PHP_EXT_SECTION",
+            format_php_ext_candidates_section(&quality["php_extension_candidates"]),
+        ),
+        (
+            "SIMULATION_SECTION",
+            format_multi_user_simulation_section(&data["multi_user_simulation"]),
+        ),
         ("PHP_SECTION", sections::format_php_section(php)),
     ];
 

@@ -1,4 +1,4 @@
-//! `greencode analyze`: static code-quality analysis (CCN, MI, NCLOC, smells).
+//! `greenprofiler analyze`: static code-quality analysis (CCN, MI, NCLOC, smells, PHP ext candidates, simulation).
 
 pub mod output;
 pub mod targets;
@@ -23,7 +23,7 @@ pub fn execute(flags: CliFlags) {
 }
 
 fn build_analyzer(targets: Vec<String>, flags: &CliFlags) -> CodeQualityAnalyzer {
-    if flags.has_filter() {
+    let base = if flags.has_filter() {
         CodeQualityAnalyzer::with_file_filters(
             targets,
             flags.filters.clone(),
@@ -31,5 +31,6 @@ fn build_analyzer(targets: Vec<String>, flags: &CliFlags) -> CodeQualityAnalyzer
         )
     } else {
         CodeQualityAnalyzer::new(targets)
-    }
+    };
+    base.with_strict(flags.strict)
 }

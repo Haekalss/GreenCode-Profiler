@@ -13,13 +13,13 @@ ARCH="$(uname -m)"
 
 case "$OS" in
   Linux*)
-    ASSET_NAME="GreenProfiler-v1.8.2-linux-x64.zip"
+    ASSET_NAME="GreenProfiler-v1.9.0-linux-x64.zip"
     ;;
   Darwin*)
     if [ "$ARCH" = "arm64" ]; then
-      ASSET_NAME="GreenProfiler-v1.8.2-darwin-arm64.zip"
+      ASSET_NAME="GreenProfiler-v1.9.0-darwin-arm64.zip"
     else
-      ASSET_NAME="GreenProfiler-v1.8.2-darwin-x64.zip"
+      ASSET_NAME="GreenProfiler-v1.9.0-darwin-x64.zip"
     fi
     ;;
   *)
@@ -80,6 +80,6 @@ if [ -n "$PROFILE_FILE" ] && ! grep -q ".greenprofiler/bin" "$PROFILE_FILE" 2>/d
 fi
 
 echo ""
-echo "Green Profiler v1.8.2 successfully installed to ${INSTALL_DIR}!"
+echo "Green Profiler v1.9.0 successfully installed to ${INSTALL_DIR}!"
 echo "Commands available: 'greenprofiler' or 'gp' (alias)"
 echo "Website: https://greenprofiler.github.io"

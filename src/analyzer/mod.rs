@@ -1,12 +1,15 @@
 //! Built-in Code Quality & Architecture Analyzer in Pure Rust
-//! Menghitung NCLOC, Cyclomatic Complexity (CCN), Maintainability Index (MI), dan Code Smells
+//! Menghitung NCLOC, Cyclomatic Complexity (CCN), Maintainability Index (MI),
+//! Code Smells terkalibrasi, serta Kandidat Native PHP Extension.
 
 pub mod collector;
 pub mod metrics;
+pub mod php_ext;
 pub mod scanner;
 pub mod smells;
 pub mod summary;
 
+pub use php_ext::PhpExtensionCandidate;
 pub use smells::CodeSmell;
 
 use serde::{Deserialize, Serialize};
@@ -19,6 +22,10 @@ pub struct FunctionMetric {
     pub ccn: u32,
     pub file: String,
     pub line: usize,
+    #[serde(default)]
+    pub body_lines: usize,
+    #[serde(default)]
+    pub has_loop: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,6 +44,10 @@ pub struct OverviewMetrics {
     pub average_maintainability_index: f64,
     pub maintainability_grade: String,
     pub total_code_smells: usize,
+    #[serde(default)]
+    pub php_extension_candidates_count: usize,
+    #[serde(default)]
+    pub analysis_profile: String,
     pub language_breakdown: Vec<LanguageStat>,
 }
 
@@ -58,12 +69,15 @@ pub struct CodeQualityReport {
     pub files: Vec<FileAnalysisResult>,
     pub top_complex_functions: Vec<FunctionMetric>,
     pub code_smells: Vec<CodeSmell>,
+    #[serde(default)]
+    pub php_extension_candidates: Vec<PhpExtensionCandidate>,
 }
 
 pub struct CodeQualityAnalyzer {
     pub target_dirs: Vec<PathBuf>,
     pub file_filters: Vec<String>,
     pub file_excludes: Vec<String>,
+    pub strict: bool,
 }
 
 impl CodeQualityAnalyzer {
@@ -77,6 +91,7 @@ impl CodeQualityAnalyzer {
             target_dirs,
             file_filters: Vec::new(),
             file_excludes: Vec::new(),
+            strict: false,
         }
     }
 
@@ -94,7 +109,13 @@ impl CodeQualityAnalyzer {
             target_dirs,
             file_filters: filters.into_iter().map(|f| f.to_lowercase()).collect(),
             file_excludes: excludes.into_iter().map(|x| x.to_lowercase()).collect(),
+            strict: false,
         }
+    }
+
+    pub fn with_strict(mut self, strict: bool) -> Self {
+        self.strict = strict;
+        self
     }
 
     fn passes_file_filters(&self, path: &Path, content: &str) -> bool {
@@ -126,10 +147,15 @@ impl CodeQualityAnalyzer {
 
         let mut files_result = Vec::new();
         let mut all_functions = Vec::new();
+        let mut php_sources: Vec<(FileAnalysisResult, String)> = Vec::new();
         let mut files_considered = 0usize;
 
         for path in code_files {
-            let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_lowercase();
+            let ext = path
+                .extension()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_lowercase();
             let Some(lang) = collector::detect_language(&ext) else {
                 continue;
             };
@@ -145,11 +171,22 @@ impl CodeQualityAnalyzer {
                 continue;
             }
 
-            let result = scanner::analyze_source_file(&path, lang, &content);
+            let result = scanner::analyze_source_file(&path, &ext, lang, &content, self.strict);
             all_functions.extend(result.functions.clone());
+            if lang == "php" {
+                php_sources.push((result.clone(), content));
+            }
             files_result.push(result);
         }
 
-        summary::aggregate_report(files_result, files_considered, all_functions)
+        let php_ext_candidates = php_ext::detect_php_extension_candidates(&php_sources);
+
+        summary::aggregate_report(
+            files_result,
+            files_considered,
+            all_functions,
+            php_ext_candidates,
+            self.strict,
+        )
     }
 }

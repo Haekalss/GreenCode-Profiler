@@ -10,9 +10,9 @@
 [![Engine: Rust](https://img.shields.io/badge/Engine-Rust%20Native%201.75+-F74C00.svg?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Runtime: Standalone](https://img.shields.io/badge/Runtime-Zero%20Dependency-10b981.svg)]()
 [![Website](https://img.shields.io/badge/Website-greenprofiler.github.io-10b981.svg)](https://greenprofiler.github.io)
-[![Version](https://img.shields.io/badge/Version-1.8.2-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
+[![Version](https://img.shields.io/badge/Version-1.9.0-blue.svg)](https://github.com/Haekalss/GreenCode-Profiler/releases)
 
-Green Profiler v1.8.2 is an advanced, high-performance auditing framework for software energy efficiency (*Green Software Engineering*), static architectural quality analysis, and runtime environment efficiency. Built in **Pure Native Rust**, it isolates CPU kernel execution time from I/O and network wait bias, delivering deterministic computational metrics without requiring any external interpreter or runtime dependency.
+Green Profiler v1.9.0 is an advanced, high-performance auditing framework for software energy efficiency (*Green Software Engineering*), static architectural quality analysis, and runtime environment efficiency. Built in **Pure Native Rust**, it isolates CPU kernel execution time from I/O and network wait bias, delivering deterministic computational metrics without requiring any external interpreter or runtime dependency.
 
 🌐 **Official Website & Installation Guide**: [https://greenprofiler.github.io](https://greenprofiler.github.io)
 
@@ -77,9 +77,10 @@ Both `greenprofiler` and `gp` accept identical flags and subcommands:
 
 | Command | Alias | Arguments & Flags | Description |
 | :--- | :--- | :--- | :--- |
-| `greenprofiler init` | `gp init` | `[--force] [--filter K] [--exclude K]` | Generate `greencode.json` configuration with automatic route discovery |
-| `greenprofiler run` | `gp run` | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Run energy profiling and code architecture benchmarks |
-| `greenprofiler analyze` | `gp analyze` | `[config.json] [--no-open] [--filter K] [--exclude K] [--output file]` | Run static code quality analysis (NCLOC, CCN, MI, Smells) |
+| `greenprofiler init` | `gp init` | `[--force] [--filter K] [--exclude K]` | Generate `greenprofiler.json` configuration with automatic route discovery |
+| `greenprofiler run` | `gp run` | `[config.json] [--strict] [--users N] [--no-open] [--filter K] [--output file]` | Run energy profiling, code architecture benchmarks & multi-user simulation |
+| `greenprofiler analyze` | `gp analyze` | `[config.json] [--strict] [--no-open] [--filter K] [--exclude K] [--output file]` | Run calibrated static code quality analysis, PHP Extension candidate detection & scale projection |
+| `greenprofiler simulate` | `gp simulate` | `[report.json] [--users N] [--rpu N] [--cores C] [--window S] [--no-open]` | Simulate multi-user concurrency load, CPU saturation, P95 latency, monthly kWh & CO2e from audit results |
 | `greenprofiler routes` | `gp routes` | `[dir] [--limit N] [--filter K] [--exclude K]` | Discover and list all valid application routes from source code |
 | `greenprofiler detect` | `gp detect` | `[language]` | Detect active application server processes, PIDs, and bound ports |
 | `greenprofiler ui` | `gp ui` | - | Open the latest HTML report in your default web browser |
@@ -88,7 +89,7 @@ Both `greenprofiler` and `gp` accept identical flags and subcommands:
 
 ---
 
-## Configuration Schema (`greencode.json`)
+## Configuration Schema (`greenprofiler.json`)
 
 Example configuration for a fullstack monorepo application:
 
@@ -127,7 +128,7 @@ Example configuration for a fullstack monorepo application:
 
 ## Audit Evaluation Metrics & Thresholds
 
-Generated HTML reports (`reports/greencode_report.html`) classify metrics against objective engineering standards:
+Generated HTML reports (`reports/greenprofiler_report.html`) classify metrics against objective engineering standards:
 
 | Metric | Unit / Scale | Target Threshold | Technical Meaning |
 | :--- | :--- | :--- | :--- |

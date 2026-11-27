@@ -12,8 +12,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "greencode-profiler"
-version = "1.8.2"
+name = "greenprofiler"
+version = "1.9.0"
 dependencies = [
  "regex",
  "serde",

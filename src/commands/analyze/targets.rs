@@ -1,4 +1,4 @@
-//! Target folder resolution and filtering validation for `greencode analyze`.
+//! Target folder resolution and filtering validation for `greenprofiler analyze`.
 
 use super::super::config;
 use crate::cli::{apply_filters, print_filter_keywords, CliFlags};
@@ -10,7 +10,7 @@ pub fn resolve_targets(flags: &CliFlags) -> Option<Vec<String>> {
         .positional
         .first()
         .cloned()
-        .unwrap_or_else(|| "greencode.json".to_string());
+        .unwrap_or_else(|| "greenprofiler.json".to_string());
     let mut targets = Vec::new();
 
     if Path::new(&config_path).is_file() {
@@ -40,7 +40,7 @@ fn endpoint_filter_matches(config_value: &Value, flags: &CliFlags, path: &str) -
         path
     );
     if matched.is_empty() {
-        println!("[GreenError] 0 endpoint cocok dengan --filter / --exclude.");
+        println!("[GreenProfiler Error] 0 endpoint cocok dengan --filter / --exclude.");
         println!("            Kata kunci yang dipakai:");
         print_filter_keywords(&flags.filters, &flags.excludes);
         println!("            Jalankan 'greenprofiler routes' untuk melihat daftar endpoint.");

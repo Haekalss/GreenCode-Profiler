@@ -10,11 +10,18 @@ use serde_json::Value;
 
 pub fn run_quality_analysis(cfg: &Value, flags: &CliFlags) -> CodeQualityReport {
     let targets = config::targets(cfg);
-    let inferred = if targets.is_empty() { vec![".".to_string()] } else { targets };
+    let inferred = if targets.is_empty() {
+        vec![".".to_string()]
+    } else {
+        targets
+    };
 
     println!("[GreenProfiler] [1/4] Menjalankan Analisis Kualitas Struktur Kode (Rust Analyzer)...");
     if flags.has_filter() && !inferred.is_empty() {
-        println!("            Target direktori (monorepo, semua source_dirs): {}", inferred.join(", "));
+        println!(
+            "            Target direktori (monorepo, semua source_dirs): {}",
+            inferred.join(", ")
+        );
     }
 
     let analyzer = if flags.has_filter() {
@@ -25,21 +32,25 @@ pub fn run_quality_analysis(cfg: &Value, flags: &CliFlags) -> CodeQualityReport 
         )
     } else {
         CodeQualityAnalyzer::new(inferred)
-    };
+    }
+    .with_strict(flags.strict);
 
     let report = analyzer.run_analysis();
     let q_ov = &report.overview;
     if flags.has_filter() {
         println!(
             "            Filter file: {} cocok dengan keyword {:?} dari {} total file kode.",
-            q_ov.total_files,
-            flags.filters,
-            q_ov.total_files_considered
+            q_ov.total_files, flags.filters, q_ov.total_files_considered
         );
     }
     println!(
-        "            Files: {} | NCLOC: {} | Avg CCN: {:.2} | MI: {:.1}/100",
-        q_ov.total_files, q_ov.total_ncloc, q_ov.average_ccn_per_file, q_ov.average_maintainability_index
+        "            Files: {} | NCLOC: {} | Avg CCN: {:.2} | MI: {:.1}/100 | Smells: {} | PHP Ext Candidates: {}",
+        q_ov.total_files,
+        q_ov.total_ncloc,
+        q_ov.average_ccn_per_file,
+        q_ov.average_maintainability_index,
+        q_ov.total_code_smells,
+        q_ov.php_extension_candidates_count
     );
     if !q_ov.language_breakdown.is_empty() {
         let langs: Vec<String> = q_ov
@@ -59,11 +70,22 @@ pub fn audit_php_runtime(runtime: &str) -> Option<PhpAuditReport> {
     println!("\n[GreenProfiler] [2/4] Mengaudit PHP Runtime & Green Extensions (OPcache, JIT, Xdebug)...");
     let rep = PhpAuditor::audit();
     if rep.is_php_available {
-        println!("            PHP: {} | Extensions: {}", rep.php_version, rep.loaded_extensions_count);
+        println!(
+            "            PHP: {} | Extensions: {}",
+            rep.php_version, rep.loaded_extensions_count
+        );
         println!(
             "            OPcache: {} | Xdebug: {}",
-            if rep.opcache_enabled { "Aktif [OK]" } else { "Nonaktif [BOROS ENERGI]" },
-            if rep.xdebug_active { "Aktif [OVERHEAD TINGGI]" } else { "Nonaktif [OK]" }
+            if rep.opcache_enabled {
+                "Aktif [OK]"
+            } else {
+                "Nonaktif [BOROS ENERGI]"
+            },
+            if rep.xdebug_active {
+                "Aktif [OVERHEAD TINGGI]"
+            } else {
+                "Nonaktif [OK]"
+            }
         );
     }
     Some(rep)
@@ -76,7 +98,10 @@ pub fn profile_endpoints(
     base_url: &str,
     repeats: usize,
 ) {
-    println!("\n[GreenProfiler] [4/4] Memulai profiling runtime {} endpoint...", endpoints.len());
+    println!(
+        "\n[GreenProfiler] [4/4] Memulai profiling runtime {} endpoint...",
+        endpoints.len()
+    );
     for ep in endpoints {
         let url = config::endpoint_url(ep, base_url, &cfg["services"]);
         println!("\n-> [{}] {} ({})", ep.method, ep.name, url);

@@ -144,7 +144,7 @@ impl ProcessEnergyEngine {
         let total_active_cpu = delta_user + delta_sys;
         let effective_wall = wall_clock_sec.max(0.0001);
 
-        // Model Energi GreenCode: Proporsional terhadap utilitas CPU aktif murni
+        // Model Energi Green Profiler: Proporsional terhadap utilitas CPU aktif murni
         // Menghilangkan distorsi I/O wait latensi jaringan
         let cpu_utilization = (total_active_cpu / effective_wall).min(1.0);
         let energy_joules = self.cpu_tdp_watts * cpu_utilization * total_active_cpu;

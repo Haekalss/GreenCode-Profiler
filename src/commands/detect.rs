@@ -1,4 +1,4 @@
-//! `greencode detect`: audit PHP runtime and find active server processes.
+//! `greenprofiler detect`: audit PHP runtime and find active server processes.
 
 use crate::detector::RuntimeDetector;
 use crate::php_auditor::{PhpAuditReport, PhpAuditor};

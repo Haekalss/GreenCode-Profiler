@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Profiler Multi-User Scale Simulation Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; }
+        .container { max-width: 1120px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0ea5e9; padding-bottom: 20px; margin-bottom: 30px; }
+        .header-brand { display: flex; align-items: center; gap: 18px; }
+        .logo-img { width: 68px; height: 68px; object-fit: contain; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin: 25px 0; }
+        .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; text-align: center; }
+        .card .val { font-size: 25px; font-weight: 700; color: #0f172a; margin-top: 6px; }
+        .card .lbl { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px 12px; }
+        th { background: #f1f5f9; color: #334155; font-weight: 600; text-align: left; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .section-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #0ea5e9; padding-left: 10px; }
+        .desc-box { border-radius: 8px; padding: 18px 22px; margin-bottom: 24px; line-height: 1.6; font-size: 14px; }
+        .desc-box h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; }
+        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-brand">
+                <img src="data:image/png;base64,{{LOGO}}" class="logo-img" alt="Green Profiler Logo" />
+                <div>
+                    <h1 style="margin:0;font-size:24px;color:#0f172a;">Multi-User Scale &amp; Energy Simulation Report</h1>
+                    <p style="margin:5px 0 0 0;color:#64748b;">Project: <strong>{{PROJECT_NAME}}</strong> | Sumber: <strong>{{SOURCE_MODE}}</strong></p>
+                </div>
+            </div>
+            <div>
+                <span style="background:#0ea5e9;color:white;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;">SCALE SIMULATION</span>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="lbl">Batas Aman User (80% CPU)</div>
+                <div class="val" style="color:#059669;">~{{MAX_USERS_80}}</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">User Konkuren ({{CPU_CORES}} vCPU)</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Throughput Maksimal Aman</div>
+                <div class="val" style="color:#2563eb;">{{MAX_RPS_80}} RPS</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">Request / Detik</div>
+            </div>
+            <div class="card">
+                <div class="lbl">Potensi Efisiensi Optimasi</div>
+                <div class="val" style="color:#4f46e5;">-{{OPT_SAVING_PCT}}%</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">Energi &amp; Beban CPU</div>
+            </div>
+        </div>
+
+        {{SIMULATION_SECTION}}
+
+        <div class="footer">
+            Dihasilkan secara otomatis oleh <strong>Green Profiler v1.9.0 (Rust Native Architecture)</strong>.
+        </div>
+    </div>
+</body>
+</html>

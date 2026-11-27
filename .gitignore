@@ -32,9 +32,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Go
-!bin/greencode.exe
-bin/greencode
+# Binaries
+!bin/greenprofiler.exe
+bin/greenprofiler
+!bin/gp.exe
+bin/gp
 *.test
 *.prof
 
@@ -49,6 +51,9 @@ reports/*.json
 reports/*.html
 reports/*.csv
 !reports/.gitkeep
+*report*.html
+playwright-report/
+test-results/
 
 # Logs
 *.log
